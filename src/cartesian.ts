@@ -10,9 +10,13 @@ const castValuesArray = (v: unknown): unknown[] => {
 };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyArray = readonly any[] | any[];
-type Subject<T extends AnyArray, TKey extends string> = Record<TKey, OneOf<T> | string | number | symbol | object> | AnyArray[];
+type Subject<T extends AnyArray, TKey extends string> =
+	| Record<TKey, OneOf<T> | string | number | symbol | object>
+	| AnyArray[]
+	| (AnyArray | unknown)[];
 export const calculate = <T extends AnyArray, TKey extends string>(subject: Subject<T, TKey>) => {
-	if (Array.isArray(subject)) return fastCartesian(subject as unknown[][]);
+	if (Array.isArray(subject)) return fastCartesian(subject.map((v) => (Array.isArray(v) ? v : [v])) as unknown[][]);
+
 	const entries = Object.entries(subject).map(([key, value]) => castValuesArray(value).map((v) => [key, v] as const));
 
 	return fastCartesian(entries).map(Object.fromEntries);
