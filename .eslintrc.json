@@ -1,0 +1,22 @@
+{
+	"$schema": "https://json.schemastore.org/eslintrc",
+	"plugins": ["@typescript-eslint", "prettier"],
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"ecmaVersion": 12,
+		"sourceType": "module"
+	},
+	"rules": {
+		"prettier/prettier": "error"
+	},
+	"extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
+	"env": {
+		"es2021": true
+	},
+	"overrides": [
+		{
+			"files": ["test/**/*.ts", "test/**/*.spec.ts"],
+			"env": { "jest": true, "node": true }
+		}
+	]
+}

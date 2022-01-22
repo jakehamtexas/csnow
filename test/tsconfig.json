@@ -1,0 +1,17 @@
+{
+	"extends": "../tsconfig.json",
+	"references": [
+		{
+			"name": "snot",
+			"path": ".."
+		}
+	],
+	"compilerOptions": {
+		"types": ["jest"],
+		"rootDir": "..",
+		"noEmit": true,
+		"composite": true,
+		"allowJs": true
+	},
+	"include": ["./test"]
+}

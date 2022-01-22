@@ -1,0 +1,14 @@
+{
+	"compilerOptions": {
+		"alwaysStrict": true,
+		"strict": true,
+		"strictNullChecks": true,
+		"noUncheckedIndexedAccess": true,
+		"target": "ES2019",
+		"moduleResolution": "node",
+		"composite": true,
+		"types": ["node"],
+		"isolatedModules": true
+	},
+	"include": ["./src"]
+}
