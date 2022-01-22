@@ -11,7 +11,7 @@ const config = {
 	transform: {
 		"^.+\\.(js|ts|tsx)$": "ts-jest",
 	},
-	transformIgnorePatterns: ["node_modules/(?!fast-cartesian)"],
+	transformIgnorePatterns: ["node_modules/(?!(fast-cartesian|js-combinatorics))"],
 };
 
 export default config;

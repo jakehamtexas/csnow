@@ -12,7 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "fast-cartesian": "^6.1.0"
+    "fast-cartesian": "^6.1.0",
+    "js-combinatorics": "^1.5.4"
   },
   "devDependencies": {
     "@types/jest": "^27.4.0",
