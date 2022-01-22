@@ -85,4 +85,26 @@ describe("Cartesian.calculate", () => {
 			expect(actual).toStrictEqual(expect.arrayContaining(expected));
 		});
 	});
+	describe("array", () => {
+		it("should calculate cartesian product with 2 nested arrays of strings", () => {
+			// arrange
+			const array = [
+				["bar", "baz"],
+				["bar2", "baz2"],
+			];
+
+			const expected = [
+				["bar", "bar2"],
+				["bar", "baz2"],
+				["baz", "bar2"],
+				["baz", "baz2"],
+			];
+
+			// act
+			const actual = Cartesian.calculate(array);
+
+			// assert
+			expect(actual).toStrictEqual(expect.arrayContaining(expected));
+		});
+	});
 });
