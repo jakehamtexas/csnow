@@ -2,10 +2,17 @@ import fastCartesian from "fast-cartesian";
 // type Cartesian = {};
 // type Snap<TInput extends Cartesian, TOutput> = (input: TInput, fn: (input: TInput) => TOutput) => SnapTest<TInput, TOutput>;
 
+const isOneOf = (v: unknown): v is OneOf<unknown[]> =>
+	typeof v === "object" && (v as { type: PropertyKind } | null)?.["type"] === PropertyKind.OneOf;
+const castValuesArray = (v: unknown): unknown[] => {
+	if (isOneOf(v)) return v.value;
+	return [v];
+};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyArray = readonly any[] | any[];
-export const calculate = <T extends AnyArray, TKey extends string>(subject: Record<TKey, OneOf<T>>) => {
-	const entries = Object.entries(subject).map(([key, value]) => (value as OneOf<T>).value.map((v) => [key, v] as const));
+type Subject<T extends AnyArray, TKey extends string> = Record<TKey, OneOf<T> | string | number | symbol | object>;
+export const calculate = <T extends AnyArray, TKey extends string>(subject: Subject<T, TKey>) => {
+	const entries = Object.entries(subject).map(([key, value]) => castValuesArray(value).map((v) => [key, v] as const));
 
 	return fastCartesian(entries).map(Object.fromEntries);
 };
