@@ -108,6 +108,35 @@ describe("Cartesian.calculate", () => {
 				// assert
 				expect(actual).toStrictEqual(expect.arrayContaining(expected));
 			});
+
+			it("should calculate cartesian product with an object of two properties, one of Cartesian.kOf [n: 3, k: 2], and one of a string", () => {
+				// arrange
+				const object = {
+					foo: Cartesian.kOf(2, ["foo", "bar", "baz"]),
+					foo2: "bar2",
+				};
+
+				const expected = [
+					{
+						foo: ["foo", "bar"],
+						foo2: "bar2",
+					},
+					{
+						foo: ["foo", "baz"],
+						foo2: "bar2",
+					},
+					{
+						foo: ["bar", "baz"],
+						foo2: "bar2",
+					},
+				];
+
+				// act
+				const actual = Cartesian.calculate(object);
+
+				// assert
+				expect(actual).toStrictEqual(expect.arrayContaining(expected));
+			});
 		});
 	});
 	describe("array", () => {
