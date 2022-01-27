@@ -201,4 +201,57 @@ describe("Cartesian.calculate", () => {
 			expect(actual).toStrictEqual(expect.arrayContaining(expected));
 		});
 	});
+
+	describe("deep", () => {
+		describe("object", () => {
+			it.only("should calculate cartesian product with an object of two properties, each of Cartesion.oneOf (object)), and one with nested Cartesian.oneOf", () => {
+				// arrange
+				const object = {
+					foo: Cartesian.oneOf([{ value: "bar" }, { value: "baz" }]),
+					foo2: Cartesian.oneOf([{ value: Cartesian.oneOf(["bar2", "baz2"]) }, { value2: Cartesian.oneOf(["bar3", "baz3"]) }]),
+				};
+
+				const expected = [
+					{
+						foo: { value: "bar" },
+						foo2: { value: "bar2" },
+					},
+					{
+						foo: { value: "bar" },
+						foo2: { value: "baz2" },
+					},
+					{
+						foo: { value: "bar" },
+						foo2: { value2: "bar3" },
+					},
+					{
+						foo: { value: "bar" },
+						foo2: { value2: "baz3" },
+					},
+					{
+						foo: { value: "baz" },
+						foo2: { value: "bar2" },
+					},
+					{
+						foo: { value: "baz" },
+						foo2: { value: "baz2" },
+					},
+					{
+						foo: { value: "baz" },
+						foo2: { value2: "bar3" },
+					},
+					{
+						foo: { value: "baz" },
+						foo2: { value2: "baz3" },
+					},
+				];
+
+				// act
+				const actual = Cartesian.calculate(object);
+
+				// assert
+				expect(actual).toStrictEqual(expect.arrayContaining(expected));
+			});
+		});
+	});
 });
