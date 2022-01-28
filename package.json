@@ -1,6 +1,6 @@
 {
   "name": "snot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A SNapshot Object Testing utility that builds cartesian products of test subjects.",
   "main": "index.js",
   "files": [
