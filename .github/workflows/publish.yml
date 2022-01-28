@@ -3,7 +3,13 @@
 
 name: Publish
 
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
+    inputs:
+      semver:
+        description: "Semver"
+        required: true
+        default: "patch"
 jobs:
   publish-npm:
     if: github.ref == 'refs/heads/main'
@@ -17,6 +23,6 @@ jobs:
           node-version: 14
           registry-url: https://registry.npmjs.org/
       - run: npm ci
-      - run: npm publish
+      - run: npm run release -- ${{ github.event.input.semver }} --ci
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
