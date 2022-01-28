@@ -1,3 +1,3 @@
-import * as Cartesian from "./cartesian";
-
-export { Cartesian };
+import { calculate } from "./cartesian";
+export { oneOf, kOf } from "./combinatoricStructure";
+export const eager = calculate;
