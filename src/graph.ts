@@ -31,7 +31,12 @@ export const combinatoricStructurePaths = (object: object) => {
 				combinatoricToTraverseTuple(combinatoric).concat(nonCombinatoricToTraverseTuple(nonCombinatoric))
 			)
 			.value();
-		return new Set(traverseTuples.map((args) => rTraverse(...args)).flatMap((set) => [...set]));
+		return new Set(
+			_.chain(traverseTuples)
+				.map((args) => rTraverse(...args))
+				.flatMap((set) => [...set])
+				.value()
+		);
 	}
 
 	return rTraverse(object, [], new Set());
@@ -51,7 +56,10 @@ const expanded = (obj: object) => {
 		const path = isTraversable(node) && shortestCombinatoricStructurePath(node);
 		if (path) {
 			const combinatoric = _.get(node, path) as CombinatoricStructuresUnion;
-			return combinatoric.array.map((inner) => _.chain(node).cloneDeep().set(path, inner).value()).flatMap(rExpand);
+			return _.chain(combinatoric.array)
+				.map((inner) => _.chain(node).cloneDeep().set(path, inner).value())
+				.flatMap(rExpand)
+				.value();
 		}
 		if (!isTraversable(node)) return node;
 		if (Array.isArray(node)) return node.map(rExpand);
@@ -82,7 +90,7 @@ export const toExpanded = <T extends object>(obj: T) => {
 		if (!isCombinatoricStructure(node)) return _.mapValues(node, (value) => rTraverse(value)) as TraverseResult<U>;
 
 		const combinatoricArray = [...getCombinatoricArray(node)];
-		const array = combinatoricArray.flatMap((v: unknown) => {
+		const array = _.flatMap(combinatoricArray, (v: unknown) => {
 			const hasCombinatoricChildren = isTraversable(v) && !_.isEmpty(combinatoricStructurePaths(v));
 			if (hasCombinatoricChildren) {
 				const shortestPath = shortestCombinatoricStructurePath(v);

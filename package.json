@@ -1,16 +1,30 @@
 {
   "name": "snot",
   "version": "1.0.0",
-  "description": "",
+  "description": "A SNapshot Object Testing utility that builds cartesian products of test subjects.",
   "main": "index.js",
   "scripts": {
     "lint": "eslint --ignore-path .eslintignore --ext .js,.ts .",
-    "test": "jest"
+    "test": "npm run test:jest && npm run test:lint",
+    "test:jest": "jest",
+    "test:lint": "npm run lint -- --max-warnings=1",
+    "build": "tsc",
+    "build:publish": "rm -rf dist && npm run build",
+    "prepublishOnly": "npm run build:publish"
   },
   "type": "module",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "object",
+    "cartesian",
+    "combination",
+    "snot",
+    "oneof",
+    "kof",
+    "snapshot",
+    "testing"
+  ],
+  "author": "Jake Hamilton (jakehamtexas@gmail.com)",
+  "license": "Unlicense",
   "dependencies": {
     "fast-cartesian": "^6.1.0",
     "js-combinatorics": "^1.5.4",

@@ -1,0 +1,14 @@
+{
+	"preset": "ts-jest",
+	"globals": {
+		"ts-jest": {
+			"tsconfig": "./test/tsconfig.json"
+		}
+	},
+	"transform": {
+		"^.+\\.(js|ts|tsx)$": "ts-jest"
+	},
+	"transformIgnorePatterns": [
+		"node_modules/(?!(fast-cartesian|js-combinatorics))"
+	]
+}
