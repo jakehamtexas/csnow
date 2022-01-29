@@ -1,0 +1,9 @@
+.github
+src
+test
+.eslint*
+.gitignore
+.prettierrc
+jest.config.json
+tsconfig.json
+typescript.eslintrc.json
