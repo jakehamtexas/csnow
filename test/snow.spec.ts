@@ -1,13 +1,13 @@
-import Snow, { KOf, OneOf, makeSnapshot } from "../src";
+import Snow from "../src";
 import { Snapshot } from "../src/snow";
 describe("Snow", () => {
 	describe("object", () => {
 		describe("oneOf", () => {
-			it("should calculate cartesian product with an object of two properties, each of OneOf.make", () => {
+			it("should calculate cartesian product with an object of two properties, each of Snow.OneOf.make", () => {
 				// arrange
 				const object = {
-					foo: OneOf.make(["bar", "baz"]),
-					foo2: OneOf.make(["bar2", "baz2"]),
+					foo: Snow.OneOf.make(["bar", "baz"]),
+					foo2: Snow.OneOf.make(["bar2", "baz2"]),
 				};
 
 				const expected = [
@@ -36,10 +36,10 @@ describe("Snow", () => {
 				expect(actual).toStrictEqual(expect.arrayContaining(expected));
 			});
 
-			it("should calculate cartesian product with an object of two properties, one of OneOf.make, and one of a string", () => {
+			it("should calculate cartesian product with an object of two properties, one of Snow.OneOf.make, and one of a string", () => {
 				// arrange
 				const object = {
-					foo: OneOf.make(["bar", "baz"]),
+					foo: Snow.OneOf.make(["bar", "baz"]),
 					foo2: "bar2",
 				};
 
@@ -61,10 +61,10 @@ describe("Snow", () => {
 				expect(actual).toStrictEqual(expect.arrayContaining(expected));
 			});
 
-			it("should calculate cartesian product with an object of two properties, one of OneOf.make, and one of an array of string", () => {
+			it("should calculate cartesian product with an object of two properties, one of Snow.OneOf.make, and one of an array of string", () => {
 				// arrange
 				const object = {
-					foo: OneOf.make(["bar", "baz"]),
+					foo: Snow.OneOf.make(["bar", "baz"]),
 					foo2: ["bar2", "baz2"],
 				};
 
@@ -91,8 +91,8 @@ describe("Snow", () => {
 			it("should calculate cartesian product with an object of two properties, each of KOf.make [n: 2, k: 2]", () => {
 				// arrange
 				const object = {
-					foo: KOf.make(2, ["bar", "baz"]),
-					foo2: KOf.make(2, ["bar2", "baz2"]),
+					foo: Snow.KOf.make(2, ["bar", "baz"]),
+					foo2: Snow.KOf.make(2, ["bar2", "baz2"]),
 				};
 
 				const expected = [
@@ -112,7 +112,7 @@ describe("Snow", () => {
 			it("should calculate cartesian product with an object of two properties, one of KOf.make [n: 3, k: 2], and one of a string", () => {
 				// arrange
 				const object = {
-					foo: KOf.make(2, ["foo", "bar", "baz"]),
+					foo: Snow.KOf.make(2, ["foo", "bar", "baz"]),
 					foo2: "bar2",
 				};
 
@@ -203,12 +203,12 @@ describe("Snow", () => {
 
 	describe("deep", () => {
 		describe("object", () => {
-			it("should calculate cartesian product with an object of two properties, each of OneOf.make (object)), and one with nested OneOf.make", () => {
+			it("should calculate cartesian product with an object of two properties, each of Snow.OneOf.make (object)), and one with nested Snow.OneOf.make", () => {
 				// arrange
 				const object = {
-					foo: OneOf.make([{ a: "bar" }, { a: "baz" }]),
-					foo2: OneOf.make([{ a: OneOf.make(["bar2", "baz2"]) }, { b: OneOf.make(["bar3", "baz3"]) }]),
-					foo3: OneOf.make(["foo", "bar"]),
+					foo: Snow.OneOf.make([{ a: "bar" }, { a: "baz" }]),
+					foo2: Snow.OneOf.make([{ a: Snow.OneOf.make(["bar2", "baz2"]) }, { b: Snow.OneOf.make(["bar3", "baz3"]) }]),
+					foo3: Snow.OneOf.make(["foo", "bar"]),
 				};
 
 				const expected = [
@@ -306,7 +306,7 @@ describe("Snow", () => {
 describe("makeSnapshot", () => {
 	it("should work", () => {
 		const fn = ({ foo }: { foo: string }) => foo + "!";
-		const actual = makeSnapshot({ foo: "foo" }, fn);
+		const actual = Snow.makeSnapshot({ foo: "foo" }, fn);
 		const expected: Snapshot<{ foo: string }, string> = [
 			{
 				input: { foo: "foo" },
