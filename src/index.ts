@@ -1,3 +1,4 @@
-import { calculate } from "./cartesian";
-export { oneOf, kOf } from "./combinatoricStructure";
-export const eager = calculate;
+import { calculate, makeSnapshot } from "./snow";
+export { OneOf, KOf } from "./combinatoric";
+export { makeSnapshot };
+export default calculate;

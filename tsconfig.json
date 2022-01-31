@@ -11,7 +11,8 @@
 		"isolatedModules": true,
 		"allowJs": true,
 		"esModuleInterop": true,
-		"outDir": "dist"
+		"outDir": "dist",
+		"lib": ["ES2015"]
 	},
 	"include": ["./src"]
 }

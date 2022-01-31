@@ -1,5 +1,5 @@
 {
-  "name": "snot",
+  "name": "snow",
   "version": "1.0.0",
   "description": "A SNapshot Object Testing utility that builds cartesian products of test subjects.",
   "main": "index.js",
@@ -22,7 +22,7 @@
     "object",
     "cartesian",
     "combination",
-    "snot",
+    "snow",
     "oneof",
     "kof",
     "snapshot",

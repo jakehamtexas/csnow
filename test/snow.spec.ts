@@ -1,12 +1,13 @@
-import * as Snot from "../src";
-describe("Snot.eager", () => {
+import Snow, { KOf, OneOf, makeSnapshot } from "../src";
+import { Snapshot } from "../src/snow";
+describe("Snow", () => {
 	describe("object", () => {
 		describe("oneOf", () => {
-			it("should calculate cartesian product with an object of two properties, each of Snot.oneOf", () => {
+			it("should calculate cartesian product with an object of two properties, each of OneOf.make", () => {
 				// arrange
 				const object = {
-					foo: Snot.oneOf(["bar", "baz"]),
-					foo2: Snot.oneOf(["bar2", "baz2"]),
+					foo: OneOf.make(["bar", "baz"]),
+					foo2: OneOf.make(["bar2", "baz2"]),
 				};
 
 				const expected = [
@@ -29,16 +30,16 @@ describe("Snot.eager", () => {
 				];
 
 				// act
-				const actual = Snot.eager(object);
+				const actual = Snow(object);
 
 				// assert
 				expect(actual).toStrictEqual(expect.arrayContaining(expected));
 			});
 
-			it("should calculate cartesian product with an object of two properties, one of Snot.oneOf, and one of a string", () => {
+			it("should calculate cartesian product with an object of two properties, one of OneOf.make, and one of a string", () => {
 				// arrange
 				const object = {
-					foo: Snot.oneOf(["bar", "baz"]),
+					foo: OneOf.make(["bar", "baz"]),
 					foo2: "bar2",
 				};
 
@@ -54,16 +55,16 @@ describe("Snot.eager", () => {
 				];
 
 				// act
-				const actual = Snot.eager(object);
+				const actual = Snow(object);
 
 				// assert
 				expect(actual).toStrictEqual(expect.arrayContaining(expected));
 			});
 
-			it("should calculate cartesian product with an object of two properties, one of Snot.oneOf, and one of an array of string", () => {
+			it("should calculate cartesian product with an object of two properties, one of OneOf.make, and one of an array of string", () => {
 				// arrange
 				const object = {
-					foo: Snot.oneOf(["bar", "baz"]),
+					foo: OneOf.make(["bar", "baz"]),
 					foo2: ["bar2", "baz2"],
 				};
 
@@ -79,7 +80,7 @@ describe("Snot.eager", () => {
 				];
 
 				// act
-				const actual = Snot.eager(object);
+				const actual = Snow(object);
 
 				// assert
 				expect(actual).toStrictEqual(expect.arrayContaining(expected));
@@ -87,11 +88,11 @@ describe("Snot.eager", () => {
 		});
 
 		describe("kOf", () => {
-			it("should calculate cartesian product with an object of two properties, each of Snot.kOf [n: 2, k: 2]", () => {
+			it("should calculate cartesian product with an object of two properties, each of KOf.make [n: 2, k: 2]", () => {
 				// arrange
 				const object = {
-					foo: Snot.kOf(2, ["bar", "baz"]),
-					foo2: Snot.kOf(2, ["bar2", "baz2"]),
+					foo: KOf.make(2, ["bar", "baz"]),
+					foo2: KOf.make(2, ["bar2", "baz2"]),
 				};
 
 				const expected = [
@@ -102,16 +103,16 @@ describe("Snot.eager", () => {
 				];
 
 				// act
-				const actual = Snot.eager(object);
+				const actual = Snow(object);
 
 				// assert
 				expect(actual).toStrictEqual(expect.arrayContaining(expected));
 			});
 
-			it("should calculate cartesian product with an object of two properties, one of Snot.kOf [n: 3, k: 2], and one of a string", () => {
+			it("should calculate cartesian product with an object of two properties, one of KOf.make [n: 3, k: 2], and one of a string", () => {
 				// arrange
 				const object = {
-					foo: Snot.kOf(2, ["foo", "bar", "baz"]),
+					foo: KOf.make(2, ["foo", "bar", "baz"]),
 					foo2: "bar2",
 				};
 
@@ -131,7 +132,7 @@ describe("Snot.eager", () => {
 				];
 
 				// act
-				const actual = Snot.eager(object);
+				const actual = Snow(object);
 				// assert
 				expect(actual).toStrictEqual(expect.arrayContaining(expected));
 			});
@@ -153,7 +154,7 @@ describe("Snot.eager", () => {
 			];
 
 			// act
-			const actual = Snot.eager(array);
+			const actual = Snow(array);
 
 			// assert
 			expect(actual).toStrictEqual(expect.arrayContaining(expected));
@@ -169,7 +170,7 @@ describe("Snot.eager", () => {
 			];
 
 			// act
-			const actual = Snot.eager(array);
+			const actual = Snow(array);
 
 			// assert
 			expect(actual).toStrictEqual(expect.arrayContaining(expected));
@@ -193,7 +194,7 @@ describe("Snot.eager", () => {
 			];
 
 			// act
-			const actual = Snot.eager(array);
+			const actual = Snow(array);
 
 			// assert
 			expect(actual).toStrictEqual(expect.arrayContaining(expected));
@@ -202,12 +203,12 @@ describe("Snot.eager", () => {
 
 	describe("deep", () => {
 		describe("object", () => {
-			it("should calculate cartesian product with an object of two properties, each of Snot.oneOf (object)), and one with nested Snot.oneOf", () => {
+			it("should calculate cartesian product with an object of two properties, each of OneOf.make (object)), and one with nested OneOf.make", () => {
 				// arrange
 				const object = {
-					foo: Snot.oneOf([{ a: "bar" }, { a: "baz" }]),
-					foo2: Snot.oneOf([{ a: Snot.oneOf(["bar2", "baz2"]) }, { b: Snot.oneOf(["bar3", "baz3"]) }]),
-					foo3: Snot.oneOf(["foo", "bar"]),
+					foo: OneOf.make([{ a: "bar" }, { a: "baz" }]),
+					foo2: OneOf.make([{ a: OneOf.make(["bar2", "baz2"]) }, { b: OneOf.make(["bar3", "baz3"]) }]),
+					foo3: OneOf.make(["foo", "bar"]),
 				};
 
 				const expected = [
@@ -294,10 +295,25 @@ describe("Snot.eager", () => {
 				];
 
 				// act
-				const actual = Snot.eager(object);
+				const actual = Snow(object);
 				// assert
 				expect(actual).toStrictEqual(expect.arrayContaining(expected));
 			});
 		});
+	});
+});
+
+describe("makeSnapshot", () => {
+	it("should work", () => {
+		const fn = ({ foo }: { foo: string }) => foo + "!";
+		const actual = makeSnapshot({ foo: "foo" }, fn);
+		const expected: Snapshot<{ foo: string }, string> = [
+			{
+				input: { foo: "foo" },
+				output: "foo!",
+			},
+		];
+
+		expect(actual).toStrictEqual(expected);
 	});
 });
