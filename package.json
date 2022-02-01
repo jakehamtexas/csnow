@@ -14,7 +14,7 @@
     "test:lint": "npm run lint -- --max-warnings=1",
     "build": "node build.js",
     "build:publish": "rm -rf dist && npm run build && tsc",
-    "prerelease": "npm run build:publish",
+    "prerelease": "npm test && npm run build:publish",
     "release": "release-it",
     "release:dry": "release-it --dry-run"
   },
