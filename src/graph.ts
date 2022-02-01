@@ -2,7 +2,7 @@ import _ from "lodash";
 import { Combination } from "ts-combinatorics";
 import { PATH_DELIMITER } from "./constant";
 import { AnyArray } from "./util";
-import { isCombinatoricStructure, KOf } from "./combinatoric";
+import { isCombinatoricStructure, KOf, OneOf } from "./combinatoric";
 import { CombinatoricStructuresUnion } from "./combinatoric/combinatoric";
 
 type CombinatoricTuple = readonly [string, never, string[]];
@@ -85,7 +85,7 @@ function* getCombinatoricArray(combinatoricStructure: CombinatoricStructuresUnio
 	yield* combinatoricStructure.array.values();
 }
 type TraverseResult<T> = T extends AnyArray ? TraverseResult<unknown>[] : T extends object ? TraversedGraph<T> : T;
-export const toExpanded = <T extends object>(obj: T) => {
+export const toExpanded = <T extends object>(subjects: T[]) => {
 	const rTraverseObject = <U extends object>(node: U, flatten = false): TraverseResult<U> | object[] => {
 		if (!isCombinatoricStructure(node)) return _.mapValues(node, (value) => rTraverse(value)) as TraverseResult<U>;
 
@@ -112,6 +112,21 @@ export const toExpanded = <T extends object>(obj: T) => {
 		return rTraverseObject(node) as TraverseResult<U>;
 	};
 
-	const traversed = rTraverse(obj) as TraversedGraph<T>;
-	return _.castArray(expanded(traversed));
+	const expandSubject = (subject: T) => {
+		const traversed = rTraverse(subject) as TraversedGraph<T>;
+		return _.castArray(expanded(traversed));
+	};
+	return _.chain(subjects)
+		.map(expandSubject)
+		.mapValues((subjects) => OneOf(subjects))
+		.thru((subjectObj) => expandSubject(subjectObj as T))
+		.map(Object.entries)
+		.map((entries) =>
+			_.chain(entries)
+				.map(([indexStr, v]) => [parseInt(indexStr, 10), v])
+				.sortBy(([pos]) => pos)
+				.map(_.last)
+				.value()
+		)
+		.value() as object[][];
 };

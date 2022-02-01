@@ -27,7 +27,7 @@ describe("csnow", () => {
 						foo: "baz",
 						foo2: "baz2",
 					},
-				];
+				].map((obj) => [obj]);
 
 				// act
 				const actual = csnow(object);
@@ -52,7 +52,7 @@ describe("csnow", () => {
 						foo: "baz",
 						foo2: "bar2",
 					},
-				];
+				].map((obj) => [obj]);
 
 				// act
 				const actual = csnow(object);
@@ -77,7 +77,7 @@ describe("csnow", () => {
 						foo: "baz",
 						foo2: ["bar2", "baz2"],
 					},
-				];
+				].map((obj) => [obj]);
 
 				// act
 				const actual = csnow(object);
@@ -100,7 +100,7 @@ describe("csnow", () => {
 						foo: ["bar", "baz"],
 						foo2: ["bar2", "baz2"],
 					},
-				];
+				].map((obj) => [obj]);
 
 				// act
 				const actual = csnow(object);
@@ -129,7 +129,7 @@ describe("csnow", () => {
 						foo: ["bar", "baz"],
 						foo2: "bar2",
 					},
-				];
+				].map((obj) => [obj]);
 
 				// act
 				const actual = csnow(object);
@@ -292,7 +292,7 @@ describe("csnow", () => {
 						foo2: { b: "baz3" },
 						foo3: "bar",
 					},
-				];
+				].map((obj) => [obj]);
 
 				// act
 				const actual = csnow(object);
@@ -301,15 +301,117 @@ describe("csnow", () => {
 			});
 		});
 	});
+
+	describe("multiple args", () => {
+		it("should calculate cartesian product with two objects, each with a shallow combinatoric expression", () => {
+			// arrange
+			const object1 = {
+				foo: csnow.OneOf(["bar", "baz"]),
+				foo2: "bar",
+			};
+
+			const object2 = {
+				foo: "bar",
+				foo2: csnow.OneOf(["bar", "baz"]),
+			};
+
+			const expected = [
+				[
+					{
+						foo: "bar",
+						foo2: "bar",
+					},
+					{ foo: "bar", foo2: "bar" },
+				],
+				[
+					{
+						foo: "baz",
+						foo2: "bar",
+					},
+					{ foo: "bar", foo2: "bar" },
+				],
+				[
+					{
+						foo: "baz",
+						foo2: "bar",
+					},
+					{ foo: "bar", foo2: "baz" },
+				],
+				[
+					{
+						foo: "bar",
+						foo2: "bar",
+					},
+					{ foo: "bar", foo2: "baz" },
+				],
+			];
+
+			// act
+			const actual = csnow(object1, object2);
+
+			// assert
+			expect(actual).toStrictEqual(expect.arrayContaining(expected));
+		});
+
+		it("should calculate cartesian product with two objects, each with a deep combinatoric expression", () => {
+			// arrange
+			const object1 = {
+				foo: { bar: csnow.OneOf(["bar", "baz"]) },
+				foo2: "bar",
+			};
+
+			const object2 = {
+				foo: "bar",
+				foo2: { bar: csnow.OneOf(["bar", "baz"]) },
+			};
+
+			const expected = [
+				[
+					{
+						foo: { bar: "bar" },
+						foo2: "bar",
+					},
+					{ foo: "bar", foo2: { bar: "bar" } },
+				],
+				[
+					{
+						foo: { bar: "baz" },
+						foo2: "bar",
+					},
+					{ foo: "bar", foo2: { bar: "bar" } },
+				],
+				[
+					{
+						foo: { bar: "baz" },
+						foo2: "bar",
+					},
+					{ foo: "bar", foo2: { bar: "baz" } },
+				],
+				[
+					{
+						foo: { bar: "bar" },
+						foo2: "bar",
+					},
+					{ foo: "bar", foo2: { bar: "baz" } },
+				],
+			];
+
+			// act
+			const actual = csnow(object1, object2);
+
+			// assert
+			expect(actual).toStrictEqual(expect.arrayContaining(expected));
+		});
+	});
 });
 
 describe("makeSnapshot", () => {
 	it("should work", () => {
 		const fn = ({ foo }: { foo: string }) => foo + "!";
-		const actual = csnow.makeSnapshot({ foo: "foo" }, fn);
+		const actual = csnow.makeSnapshot([{ foo: "foo" }], fn);
 		const expected: Snapshot<{ foo: string }, string> = [
 			{
-				input: { foo: "foo" },
+				input: [{ foo: "foo" }],
 				output: "foo!",
 			},
 		];

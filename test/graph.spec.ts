@@ -54,9 +54,11 @@ describe("combinatoricStructurePaths", () => {
 describe("toExpanded", () => {
 	const combinationArray = (arr: unknown[]) =>
 		expect.arrayContaining(
-			arr.map((v) => ({
-				foo: v,
-			}))
+			arr.map((v) => [
+				{
+					foo: v,
+				},
+			])
 		);
 	it("should not expand an object without combinatoric structures", () => {
 		// arrange
@@ -69,17 +71,19 @@ describe("toExpanded", () => {
 		};
 
 		const expected = [
-			{
-				foo: {
-					bar: {
-						baz: 1,
+			[
+				{
+					foo: {
+						bar: {
+							baz: 1,
+						},
 					},
 				},
-			},
+			],
 		];
 
 		// act
-		const actual = toExpanded(object);
+		const actual = toExpanded([object]);
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -99,7 +103,7 @@ describe("toExpanded", () => {
 		]);
 
 		// act
-		const actual = toExpanded(object);
+		const actual = toExpanded([object]);
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -118,7 +122,7 @@ describe("toExpanded", () => {
 		]);
 
 		// act
-		const actual = toExpanded(object);
+		const actual = toExpanded([object]);
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -133,7 +137,7 @@ describe("toExpanded", () => {
 		const expected = combinationArray(["bar", "baz", "foo2"]);
 
 		// act
-		const actual = toExpanded(object);
+		const actual = toExpanded([object]);
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -148,7 +152,7 @@ describe("toExpanded", () => {
 		const expected = combinationArray([{ foo: { bar: "bar" } }, { foo: "baz" }, "foo2"]);
 
 		// act
-		const actual = toExpanded(object);
+		const actual = toExpanded([object]);
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -171,7 +175,7 @@ describe("toExpanded", () => {
 		]);
 
 		// act
-		const actual = toExpanded(object);
+		const actual = toExpanded([object]);
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -194,7 +198,7 @@ describe("toExpanded", () => {
 		]);
 
 		// act
-		const actual = toExpanded(object);
+		const actual = toExpanded([object]);
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -215,7 +219,7 @@ describe("toExpanded", () => {
 		]);
 
 		// act
-		const actual = toExpanded(object);
+		const actual = toExpanded([object]);
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -230,7 +234,7 @@ describe("toExpanded", () => {
 		const expected = combinationArray([["foo3", "bar"], ["foo3", "baz"], ["bar", "baz"], "foo2", "bar2"]);
 
 		// act
-		const actual = toExpanded(object);
+		const actual = toExpanded([object]);
 
 		// assert
 		expect(actual).toStrictEqual(expected);

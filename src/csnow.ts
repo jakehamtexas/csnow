@@ -9,10 +9,14 @@ type Irreducible = string | number | symbol | null | undefined | boolean;
 type SubjectValue = CombinatoricStructuresUnion | object | Irreducible | AnyArray;
 
 type Subject = Record<string, SubjectValue>;
-export const calculate = (subject: Subject | AnyArray[] | (AnyArray | unknown)[]) => {
-	if (Array.isArray(subject)) return fastCartesian(subject.map((v) => (Array.isArray(v) ? v : [v])) as unknown[][]);
-	return toExpanded(subject);
-};
+export function calculate(subject: AnyArray[] | (AnyArray | unknown)[]): object[];
+export function calculate(firstArg: Subject, ...otherArgs: Subject[]): object[];
+export function calculate(firstArg: Subject | AnyArray[] | (AnyArray | unknown)[], ...otherArgs: Subject[]) {
+	if (Array.isArray(firstArg)) return fastCartesian(firstArg.map((v) => (Array.isArray(v) ? v : [v])) as unknown[][]);
+
+	const subjects = [firstArg, ...otherArgs];
+	return toExpanded(subjects);
+}
 
 type NormalizedFormSubjectNode<TSubject, K extends keyof TSubject> = TSubject[K] extends infer V
 	? V extends Irreducible
@@ -32,17 +36,17 @@ type NormalizedFormSubject<TSubject extends object> = TSubject extends infer X
 	: never;
 
 export type Snapshot<TSubject extends Subject, TOutput> = {
-	input: NormalizedFormSubject<TSubject>;
+	input: NormalizedFormSubject<TSubject>[];
 	output: TOutput;
 }[];
 
 export const makeSnapshot = <TSubject extends Subject, TOutput>(
-	subject: TSubject,
-	fn: (subject: NormalizedFormSubject<TSubject>) => TOutput
+	subjects: TSubject[],
+	fn: (...subjects: NormalizedFormSubject<TSubject>[]) => TOutput
 ): Snapshot<TSubject, TOutput> => {
-	const expansions = toExpanded(subject);
+	const expansions = toExpanded(subjects);
 	return expansions.map((input) => ({
-		input: input as NormalizedFormSubject<TSubject>,
-		output: fn(input as NormalizedFormSubject<TSubject>),
+		input: input as NormalizedFormSubject<TSubject>[],
+		output: fn(...(input as NormalizedFormSubject<TSubject>[])),
 	}));
 };
