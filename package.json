@@ -1,6 +1,6 @@
 {
   "name": "csnow",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A Cartesian/SNapshot Object Writing utility.",
   "main": "./dist/index.mjs",
   "types": "./dist/src/index.d.ts",
