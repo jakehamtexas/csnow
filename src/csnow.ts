@@ -6,7 +6,7 @@ import { AnyArray } from "./util";
 // type Cartesian = {};
 // type Snap<TInput extends Cartesian, TOutput> = (input: TInput, fn: (input: TInput) => TOutput) => SnapTest<TInput, TOutput>;
 type Irreducible = string | number | symbol | null | undefined | boolean;
-type SubjectValue = CombinatoricStructuresUnion | object | Irreducible | any[];
+type SubjectValue = CombinatoricStructuresUnion | object | Irreducible | AnyArray;
 
 type Subject = Record<string, SubjectValue>;
 export const calculate = (subject: Subject | AnyArray[] | (AnyArray | unknown)[]) => {

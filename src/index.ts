@@ -1,17 +1,17 @@
-import { calculate, makeSnapshot } from "./snow";
+import { calculate, makeSnapshot } from "./csnow";
 import { OneOf, KOf } from "./combinatoric";
 export { makeSnapshot };
 
-export type Snow = typeof calculate & {
+export type CSNOW = typeof calculate & {
 	makeSnapshot: typeof makeSnapshot;
 	OneOf: typeof OneOf;
 	KOf: typeof KOf;
 };
 
-const Snow = calculate as Snow;
+const csnow = calculate as CSNOW;
 
-Snow.KOf = KOf;
-Snow.OneOf = OneOf;
-Snow.makeSnapshot = makeSnapshot;
+csnow.KOf = KOf;
+csnow.OneOf = OneOf;
+csnow.makeSnapshot = makeSnapshot;
 
-export default Snow;
+export default csnow;

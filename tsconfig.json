@@ -12,7 +12,10 @@
 		"allowJs": true,
 		"esModuleInterop": true,
 		"outDir": "dist",
-		"lib": ["ES2015"]
+		"lib": ["ES2015"],
+		"declaration": true,
+		"declarationDir": "dist",
+		"emitDeclarationOnly": true
 	},
 	"include": ["./src"]
 }

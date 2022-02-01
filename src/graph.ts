@@ -1,7 +1,7 @@
 import _ from "lodash";
+import { Combination } from "ts-combinatorics";
 import { PATH_DELIMITER } from "./constant";
 import { AnyArray } from "./util";
-import { Combination } from "js-combinatorics";
 import { isCombinatoricStructure, KOf } from "./combinatoric";
 import { CombinatoricStructuresUnion } from "./combinatoric/combinatoric";
 

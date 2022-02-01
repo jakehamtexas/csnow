@@ -1,23 +1,23 @@
-# snow
+# csnow
 
 ```sh
-npm i -D snowjs
+npm i -D csnow
 ```
 
-`snow` is a **SN**apshot **O**bject **W**riter that calculates the _Cartesian product_ of an object. `snow` provides a declarative interface for controlling the production behavior by allowing properties of the object to be expressbable as Cartesian products or combinations.
+`csnow` is a **C**artesian/**SN**apshot **O**bject **W**riter that calculates the _Cartesian product_ of an object, which may be used for brute-force snapshot testing. `csnow` provides a declarative interface for controlling the production behavior by allowing properties of the object to be expressbable as Cartesian products or combinations.
 
 The resulting construction may be expanded to an array.
 
 ```typescript
-import Snow from "snowjs";
+import csnow from "csnow";
 
 const subject = {
-	foo: Snow.OneOf.make(["bar", "baz"]),
+	foo: csnow.OneOf(["bar", "baz"]),
 	bar: "foo",
-	baz: Snow.KOf.make(2, ["foo", "bar", "baz"]),
+	baz: csnow.KOf(2, ["foo", "bar", "baz"]),
 };
 
-const snapshots = Snow(subject);
+const snapshots = csnow(subject);
 
 /*
  * [

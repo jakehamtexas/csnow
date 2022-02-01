@@ -1,12 +1,12 @@
-import { OneOf, KOf } from "../src";
+import { OneOf, KOf } from "../src/combinatoric";
 import { combinatoricStructurePaths, toExpanded } from "../src/graph";
 
 describe("combinatoricStructurePaths", () => {
 	it("should get paths where OneOf statements are used", () => {
 		// arrange
 		const object = {
-			foo: OneOf.make(["bar", "baz"]),
-			foo2: OneOf.make(["bar2", "baz2"]),
+			foo: OneOf(["bar", "baz"]),
+			foo2: OneOf(["bar2", "baz2"]),
 		};
 
 		const expected = new Set(["foo", "foo2"]);
@@ -21,8 +21,8 @@ describe("combinatoricStructurePaths", () => {
 	it("should get paths where KOf statements are used", () => {
 		// arrange
 		const object = {
-			foo: KOf.make(1, ["bar", "baz"]),
-			foo2: KOf.make(1, ["bar2", "baz2"]),
+			foo: KOf(1, ["bar", "baz"]),
+			foo2: KOf(1, ["bar2", "baz2"]),
 		};
 
 		const expected = new Set(["foo", "foo2"]);
@@ -37,8 +37,8 @@ describe("combinatoricStructurePaths", () => {
 	it("should get paths where deep statements are used", () => {
 		// arrange
 		const object = {
-			foo: OneOf.make([KOf.make(1, ["foo", "bar"]), ["baz"]]),
-			foo2: KOf.make(1, ["bar2", "baz2"]),
+			foo: OneOf([KOf(1, ["foo", "bar"]), ["baz"]]),
+			foo2: KOf(1, ["bar2", "baz2"]),
 		};
 
 		const expected = new Set(["foo", "foo2", "foo.array.0"]);
@@ -85,10 +85,10 @@ describe("toExpanded", () => {
 		expect(actual).toStrictEqual(expected);
 	});
 
-	it("should expand a OneOf.make combinatoric structure", () => {
+	it("should expand a OneOf combinatoric structure", () => {
 		// arrange
 		const object = {
-			foo: OneOf.make([{ bar: "baz" }, "foo2"]),
+			foo: OneOf([{ bar: "baz" }, "foo2"]),
 		};
 
 		const expected = combinationArray([
@@ -105,10 +105,10 @@ describe("toExpanded", () => {
 		expect(actual).toStrictEqual(expected);
 	});
 
-	it("should expand a KOf.make combinatoric structure", () => {
+	it("should expand a KOf combinatoric structure", () => {
 		// arrange
 		const object = {
-			foo: KOf.make(2, [{ bar: "baz" }, "foo2", { baz: "foo2" }]),
+			foo: KOf(2, [{ bar: "baz" }, "foo2", { baz: "foo2" }]),
 		};
 
 		const expected = combinationArray([
@@ -124,10 +124,10 @@ describe("toExpanded", () => {
 		expect(actual).toStrictEqual(expected);
 	});
 
-	it("should expand a nested OneOf.make structure", () => {
+	it("should expand a nested OneOf structure", () => {
 		// arrange
 		const object = {
-			foo: OneOf.make([OneOf.make(["bar", "baz"]), "foo2"]),
+			foo: OneOf([OneOf(["bar", "baz"]), "foo2"]),
 		};
 
 		const expected = combinationArray(["bar", "baz", "foo2"]);
@@ -139,10 +139,10 @@ describe("toExpanded", () => {
 		expect(actual).toStrictEqual(expected);
 	});
 
-	it("should expand a deep nested OneOf.make structure", () => {
+	it("should expand a deep nested OneOf structure", () => {
 		// arrange
 		const object = {
-			foo: OneOf.make([{ foo: OneOf.make([{ bar: "bar" }, "baz"]) }, "foo2"]),
+			foo: OneOf([{ foo: OneOf([{ bar: "bar" }, "baz"]) }, "foo2"]),
 		};
 
 		const expected = combinationArray([{ foo: { bar: "bar" } }, { foo: "baz" }, "foo2"]);
@@ -154,10 +154,10 @@ describe("toExpanded", () => {
 		expect(actual).toStrictEqual(expected);
 	});
 
-	it("should expand a nested KOf.make structure", () => {
+	it("should expand a nested KOf structure", () => {
 		// arrange
 		const object = {
-			foo: KOf.make(2, [KOf.make(2, ["foo3", "bar", "baz"]), "foo2", "bar2"]),
+			foo: KOf(2, [KOf(2, ["foo3", "bar", "baz"]), "foo2", "bar2"]),
 		};
 
 		const expected = combinationArray([
@@ -180,7 +180,7 @@ describe("toExpanded", () => {
 	it("should expand a deep nested KOf structure", () => {
 		// arrange
 		const object = {
-			foo: KOf.make(2, [{ foo: KOf.make(2, ["foo", { bar: "bar" }, "baz"]) }, "foo2", "baz3"]),
+			foo: KOf(2, [{ foo: KOf(2, ["foo", { bar: "bar" }, "baz"]) }, "foo2", "baz3"]),
 		};
 
 		const expected = combinationArray([
@@ -200,10 +200,10 @@ describe("toExpanded", () => {
 		expect(actual).toStrictEqual(expected);
 	});
 
-	it("should expand a OneOf.make nested inside a KOf.make structure", () => {
+	it("should expand a OneOf nested inside a KOf structure", () => {
 		// arrange
 		const object = {
-			foo: KOf.make(2, [OneOf.make(["foo3", "bar"]), "foo2", "bar2"]),
+			foo: KOf(2, [OneOf(["foo3", "bar"]), "foo2", "bar2"]),
 		};
 
 		const expected = combinationArray([
@@ -221,10 +221,10 @@ describe("toExpanded", () => {
 		expect(actual).toStrictEqual(expected);
 	});
 
-	it("should expand a KOf.make nested inside a OneOf.make structure", () => {
+	it("should expand a KOf nested inside a OneOf structure", () => {
 		// arrange
 		const object = {
-			foo: OneOf.make([KOf.make(2, ["foo3", "bar", "baz"]), "foo2", "bar2"]),
+			foo: OneOf([KOf(2, ["foo3", "bar", "baz"]), "foo2", "bar2"]),
 		};
 
 		const expected = combinationArray([["foo3", "bar"], ["foo3", "baz"], ["bar", "baz"], "foo2", "bar2"]);
