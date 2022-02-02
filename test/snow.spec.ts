@@ -1,5 +1,15 @@
 import csnow from "../src";
 import { Snapshot } from "../src/csnow";
+const allAisInB = (a: unknown[], b: unknown[]) => {
+	a.forEach((aItem) => {
+		expect(b).toContainEqual(aItem);
+	});
+};
+const doAssertion = (a: unknown[], e: unknown[]) => {
+	allAisInB(a, e);
+	allAisInB(e, a);
+	expect(a).toHaveLength(e.length);
+};
 describe("csnow", () => {
 	describe("object", () => {
 		describe("oneOf", () => {
@@ -33,7 +43,7 @@ describe("csnow", () => {
 				const actual = csnow(object);
 
 				// assert
-				expect(actual).toStrictEqual(expect.arrayContaining(expected));
+				doAssertion(actual, expected);
 			});
 
 			it("should calculate cartesian product with an object of two properties, one of csnow.OneOf, and one of a string", () => {
@@ -58,7 +68,7 @@ describe("csnow", () => {
 				const actual = csnow(object);
 
 				// assert
-				expect(actual).toStrictEqual(expect.arrayContaining(expected));
+				doAssertion(actual, expected);
 			});
 
 			it("should calculate cartesian product with an object of two properties, one of csnow.OneOf, and one of an array of string", () => {
@@ -83,7 +93,7 @@ describe("csnow", () => {
 				const actual = csnow(object);
 
 				// assert
-				expect(actual).toStrictEqual(expect.arrayContaining(expected));
+				doAssertion(actual, expected);
 			});
 		});
 
@@ -106,7 +116,7 @@ describe("csnow", () => {
 				const actual = csnow(object);
 
 				// assert
-				expect(actual).toStrictEqual(expect.arrayContaining(expected));
+				doAssertion(actual, expected);
 			});
 
 			it("should calculate cartesian product with an object of two properties, one of KOf [n: 3, k: 2], and one of a string", () => {
@@ -134,7 +144,7 @@ describe("csnow", () => {
 				// act
 				const actual = csnow(object);
 				// assert
-				expect(actual).toStrictEqual(expect.arrayContaining(expected));
+				doAssertion(actual, expected);
 			});
 		});
 	});
@@ -157,7 +167,7 @@ describe("csnow", () => {
 			const actual = csnow(array);
 
 			// assert
-			expect(actual).toStrictEqual(expect.arrayContaining(expected));
+			doAssertion(actual, expected);
 		});
 
 		it("should calculate cartesian product with 1 nested arrays of strings and 1 string value", () => {
@@ -173,7 +183,7 @@ describe("csnow", () => {
 			const actual = csnow(array);
 
 			// assert
-			expect(actual).toStrictEqual(expect.arrayContaining(expected));
+			doAssertion(actual, expected);
 		});
 
 		it("should calculate cartesian product with 2 nested arrays of arrays of strings", () => {
@@ -197,7 +207,7 @@ describe("csnow", () => {
 			const actual = csnow(array);
 
 			// assert
-			expect(actual).toStrictEqual(expect.arrayContaining(expected));
+			doAssertion(actual, expected);
 		});
 	});
 
@@ -297,7 +307,7 @@ describe("csnow", () => {
 				// act
 				const actual = csnow(object);
 				// assert
-				expect(actual).toStrictEqual(expect.arrayContaining(expected));
+				doAssertion(actual, expected);
 			});
 		});
 	});
@@ -350,7 +360,7 @@ describe("csnow", () => {
 			const actual = csnow(object1, object2);
 
 			// assert
-			expect(actual).toStrictEqual(expect.arrayContaining(expected));
+			doAssertion(actual, expected);
 		});
 
 		it("should calculate cartesian product with two objects, each with a deep combinatoric expression", () => {
@@ -400,7 +410,7 @@ describe("csnow", () => {
 			const actual = csnow(object1, object2);
 
 			// assert
-			expect(actual).toStrictEqual(expect.arrayContaining(expected));
+			doAssertion(actual, expected);
 		});
 	});
 });
@@ -416,6 +426,6 @@ describe("makeSnapshot", () => {
 			},
 		];
 
-		expect(actual).toStrictEqual(expected);
+		doAssertion(actual, expected);
 	});
 });

@@ -53,13 +53,11 @@ describe("combinatoricStructurePaths", () => {
 
 describe("toExpanded", () => {
 	const combinationArray = (arr: unknown[]) =>
-		expect.arrayContaining(
-			arr.map((v) => [
-				{
-					foo: v,
-				},
-			])
-		);
+		arr.map((v) => [
+			{
+				foo: v,
+			},
+		]);
 	it("should not expand an object without combinatoric structures", () => {
 		// arrange
 		const object = {
