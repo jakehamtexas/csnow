@@ -1,11 +1,10 @@
-import { AnyArray } from "../util";
-import { structureHelpersBy, CombinatoricStructureType, CombinatoricStructure } from "./combinatoric";
+import { structureHelpersBy, CombinatoricStructureType, CombinatoricStructure, Collection, extractValues } from "./combinatoric";
 
 export const { make, isSpecimen, rangeWith, iterateBy, strict } = structureHelpersBy(
 	CombinatoricStructureType.OneOf,
-	(array: AnyArray) => ({
+	(collection: Collection<unknown>) => ({
 		type: CombinatoricStructureType.OneOf,
-		array,
+		array: extractValues(collection),
 	})
 );
 export type Structure = CombinatoricStructureType.OneOf;

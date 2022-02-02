@@ -1,8 +1,8 @@
-import { structureHelpersBy, CombinatoricStructureType, CombinatoricStructure } from "./combinatoric";
+import { structureHelpersBy, CombinatoricStructureType, CombinatoricStructure, extractValues } from "./combinatoric";
 
-export const { make, isSpecimen, rangeWith, iterateBy, strict } = structureHelpersBy(CombinatoricStructureType.KOf, (k, array) => ({
+export const { make, isSpecimen, rangeWith, iterateBy, strict } = structureHelpersBy(CombinatoricStructureType.KOf, (k, collection) => ({
 	type: CombinatoricStructureType.KOf,
-	array,
+	array: extractValues(collection),
 	k,
 }));
 
