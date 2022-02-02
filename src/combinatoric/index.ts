@@ -7,6 +7,7 @@ type CombinatoricExpressionNamespace<T extends _Namespace> = T["make"] & {
 	isSpecimen: T["isSpecimen"];
 	rangeWith: T["rangeWith"];
 	iterateBy: T["iterateBy"];
+	strict: T["strict"];
 };
 
 export type OneOf = CombinatoricExpressionNamespace<typeof _OneOf>;
@@ -18,6 +19,7 @@ const makeNamespace = <T extends _Namespace>(ns: T) => {
 	fullyQualified.isSpecimen = ns.isSpecimen;
 	fullyQualified.rangeWith = ns.rangeWith;
 	fullyQualified.iterateBy = ns.iterateBy;
+	fullyQualified.strict = ns.strict;
 
 	return fullyQualified;
 };

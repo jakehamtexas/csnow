@@ -1,10 +1,10 @@
-import { structureHelpersBy, CombinatoricStructure, CombinatoricStructures } from "./combinatoric";
+import { structureHelpersBy, CombinatoricStructureType, CombinatoricStructure } from "./combinatoric";
 
-export const { make, isSpecimen, rangeWith, iterateBy } = structureHelpersBy(CombinatoricStructure.KOf, (k, array) => ({
-	type: CombinatoricStructure.KOf,
+export const { make, isSpecimen, rangeWith, iterateBy, strict } = structureHelpersBy(CombinatoricStructureType.KOf, (k, array) => ({
+	type: CombinatoricStructureType.KOf,
 	array,
 	k,
 }));
 
-export type Structure = CombinatoricStructure.KOf;
-export type Node = CombinatoricStructures[Structure];
+export type Structure = CombinatoricStructureType.KOf;
+export type Node = CombinatoricStructure[Structure];

@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AnyArray = readonly any[] | any[];
+export type AnyArray<T = any> = readonly T[] | T[];
 
 export function* flattenGenerator<T extends AnyArray>(arr: T[]): Generator<T> {
 	function* rFlatten(array: AnyArray, deep = false): Generator<T> {

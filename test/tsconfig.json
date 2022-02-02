@@ -10,6 +10,7 @@
 		"types": ["jest", "node"],
 		"rootDir": "..",
 		"noEmit": true,
+		"emitDeclarationOnly": false,
 		"composite": true,
 		"allowJs": true
 	},

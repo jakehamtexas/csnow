@@ -1,28 +1,29 @@
 import _ from "lodash";
 import { AnyArray } from "../util";
 
-export enum CombinatoricStructure {
+export enum CombinatoricStructureType {
 	OneOf = "oneOf",
 	KOf = "kOf",
 }
-type PropertyKindBase<TKind extends CombinatoricStructure> = { type: TKind; array: AnyArray };
-export type CombinatoricStructures = {
-	[CombinatoricStructure.OneOf]: PropertyKindBase<CombinatoricStructure.OneOf>;
-	[CombinatoricStructure.KOf]: PropertyKindBase<CombinatoricStructure.KOf> & { k: number };
+type PropertyKindBase<TKind extends CombinatoricStructureType> = { type: TKind; array: AnyArray };
+export type CombinatoricStructure = {
+	[CombinatoricStructureType.OneOf]: PropertyKindBase<CombinatoricStructureType.OneOf>;
+	[CombinatoricStructureType.KOf]: PropertyKindBase<CombinatoricStructureType.KOf> & { k: number };
 };
-export type CombinatoricStructuresUnion = CombinatoricStructures[CombinatoricStructure];
+export type CombinatoricStructuresUnion = CombinatoricStructure[CombinatoricStructureType];
 
-export const structureHelpersBy = <TStructure extends CombinatoricStructure>(
-	structure: TStructure,
-	make: TStructure extends CombinatoricStructure.OneOf
-		? (array: AnyArray) => CombinatoricStructures[CombinatoricStructure.OneOf]
-		: (k: number, array: AnyArray) => CombinatoricStructures[CombinatoricStructure.KOf]
-) => {
+type MakeReturn<T, TStructure extends CombinatoricStructureType, TStrict extends 0 | 1> = TStrict extends 0
+	? CombinatoricStructure[TStructure] & AnyArray<T>
+	: CombinatoricStructure[TStructure];
+type Make<TStructure extends CombinatoricStructureType, TStrict extends 0 | 1 = 1> = TStructure extends CombinatoricStructureType.OneOf
+	? <T>(array: AnyArray<T>) => MakeReturn<T, TStructure, TStrict>
+	: <T>(k: number, array: AnyArray<T>) => MakeReturn<T, TStructure, TStrict>;
+export const structureHelpersBy = <TStructure extends CombinatoricStructureType>(structure: TStructure, make: Make<TStructure>) => {
 	const isSpecimen = (v: unknown): v is Extract<CombinatoricStructuresUnion, { type: TStructure }> =>
-		typeof v === "object" && (v as { type: CombinatoricStructure } | null)?.["type"] === structure;
+		typeof v === "object" && (v as { type: CombinatoricStructureType } | null)?.["type"] === structure;
 
 	const arrayFnBy = (array: AnyArray) =>
-		structure === CombinatoricStructure.KOf
+		structure === CombinatoricStructureType.KOf
 			? (k: number) => make(k as number & AnyArray, array)
 			: () => make(array as number & AnyArray, undefined as never);
 	const rangeWith = (start: number, endExclusive: number, step = 1) => {
@@ -40,5 +41,6 @@ export const structureHelpersBy = <TStructure extends CombinatoricStructure>(
 		);
 		return arrayFnBy(array);
 	};
-	return { make, isSpecimen, rangeWith, iterateBy } as const;
+
+	return { make: make as never as Make<TStructure, 0>, strict: make, isSpecimen, rangeWith, iterateBy } as const;
 };
