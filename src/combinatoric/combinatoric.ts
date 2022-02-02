@@ -12,12 +12,12 @@ export type CombinatoricStructure = {
 };
 export type CombinatoricStructuresUnion = CombinatoricStructure[CombinatoricStructureType];
 
-type MakeReturn<T, TStructure extends CombinatoricStructureType, TStrict extends 0 | 1> = TStrict extends 0
-	? CombinatoricStructure[TStructure] & AnyArray<T>
+type MakeReturn<TCast, TStructure extends CombinatoricStructureType, TStrict extends 0 | 1> = TStrict extends 0
+	? CombinatoricStructure[TStructure] & TCast
 	: CombinatoricStructure[TStructure];
 type Make<TStructure extends CombinatoricStructureType, TStrict extends 0 | 1 = 1> = TStructure extends CombinatoricStructureType.OneOf
 	? <T>(array: AnyArray<T>) => MakeReturn<T, TStructure, TStrict>
-	: <T>(k: number, array: AnyArray<T>) => MakeReturn<T, TStructure, TStrict>;
+	: <T>(k: number, array: AnyArray<T>) => MakeReturn<AnyArray<T>, TStructure, TStrict>;
 export const structureHelpersBy = <TStructure extends CombinatoricStructureType>(structure: TStructure, make: Make<TStructure>) => {
 	const isSpecimen = (v: unknown): v is Extract<CombinatoricStructuresUnion, { type: TStructure }> =>
 		typeof v === "object" && (v as { type: CombinatoricStructureType } | null)?.["type"] === structure;
