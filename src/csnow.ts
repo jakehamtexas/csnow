@@ -1,12 +1,12 @@
 import fastCartesian from "fast-cartesian";
-import { CombinatoricStructuresUnion } from "./combinatoric/combinatoric";
+import { CombinatoricStructureUnion } from "./combinatoric/combinatoric";
 import { toExpanded } from "./graph";
 import { AnyArray } from "./util";
 
 // type Cartesian = {};
 // type Snap<TInput extends Cartesian, TOutput> = (input: TInput, fn: (input: TInput) => TOutput) => SnapTest<TInput, TOutput>;
 type Irreducible = string | number | symbol | null | undefined | boolean;
-type SubjectValue = CombinatoricStructuresUnion | object | Irreducible | AnyArray;
+type SubjectValue = CombinatoricStructureUnion | object | Irreducible | AnyArray;
 
 type Subject = Record<string, SubjectValue>;
 export function calculate(subject: AnyArray[] | (AnyArray | unknown)[]): object[];
@@ -21,7 +21,7 @@ export function calculate(firstArg: Subject | AnyArray[] | (AnyArray | unknown)[
 type NormalizedFormSubjectNode<TSubject, K extends keyof TSubject> = TSubject[K] extends infer V
 	? V extends Irreducible
 		? V
-		: V extends CombinatoricStructuresUnion
+		: V extends CombinatoricStructureUnion
 		? NormalizedFormSubjectNode<V["array"], number>
 		: V extends unknown[]
 		? NormalizedFormSubjectNode<V, number>[]

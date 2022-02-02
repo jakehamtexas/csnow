@@ -1,4 +1,4 @@
-import { CombinatoricStructuresUnion } from "./combinatoric";
+import { CombinatoricStructureUnion } from "./combinatoric";
 import * as _OneOf from "./oneOf";
 import * as _KOf from "./kOf";
 
@@ -26,4 +26,4 @@ const makeNamespace = <T extends _Namespace>(ns: T) => {
 
 export const KOf = makeNamespace(_KOf) as KOf;
 export const OneOf = makeNamespace(_OneOf) as OneOf;
-export const isCombinatoricStructure = (v: unknown): v is CombinatoricStructuresUnion => [KOf, OneOf].some((space) => space.isSpecimen(v));
+export const isCombinatoricStructure = (v: unknown): v is CombinatoricStructureUnion => [KOf, OneOf].some((space) => space.isSpecimen(v));

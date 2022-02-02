@@ -3,7 +3,7 @@ import { Combination } from "ts-combinatorics";
 import { PATH_DELIMITER } from "./constant";
 import { AnyArray } from "./util";
 import { isCombinatoricStructure, KOf, OneOf } from "./combinatoric";
-import { CombinatoricStructuresUnion } from "./combinatoric/combinatoric";
+import { CombinatoricStructureUnion } from "./combinatoric/combinatoric";
 
 type CombinatoricTuple = readonly [string, never, string[]];
 type Paths = Set<string>;
@@ -55,7 +55,7 @@ const expanded = (obj: object) => {
 	function rExpand(node: unknown): unknown {
 		const path = isTraversable(node) && shortestCombinatoricStructurePath(node);
 		if (path) {
-			const combinatoric = _.get(node, path) as CombinatoricStructuresUnion;
+			const combinatoric = _.get(node, path) as CombinatoricStructureUnion;
 			return _.chain(combinatoric.array)
 				.map((inner) => _.chain(node).cloneDeep().set(path, inner).value())
 				.flatMap(rExpand)
@@ -68,7 +68,7 @@ const expanded = (obj: object) => {
 	return rExpand(obj) as object[];
 };
 
-type TraversedGraphNode<T, K extends keyof T> = T[K] extends CombinatoricStructuresUnion
+type TraversedGraphNode<T, K extends keyof T> = T[K] extends CombinatoricStructureUnion
 	? T[K]
 	: T[K] extends object
 	? TraversedGraph<T[K]>
@@ -77,7 +77,7 @@ type TraversedGraph<T> = {
 	[K in keyof T]: TraversedGraphNode<T, K>;
 };
 
-function* getCombinatoricArray(combinatoricStructure: CombinatoricStructuresUnion) {
+function* getCombinatoricArray(combinatoricStructure: CombinatoricStructureUnion) {
 	if (KOf.isSpecimen(combinatoricStructure)) {
 		yield* new Combination(combinatoricStructure.array, combinatoricStructure.k).bitwiseIterator();
 		return;
