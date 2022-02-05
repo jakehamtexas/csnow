@@ -25,4 +25,12 @@ describe("Lazy", () => {
 		[...actual];
 		expect.assertions(2);
 	});
+
+	it("should reflect usage of filter after using collect", () => {
+		const expected = ["bar"];
+		const actual = Lazy.from(["foo", "bar"])
+			.filter((str) => str === "bar")
+			.collect();
+		expect(actual).toStrictEqual(expected);
+	});
 });
