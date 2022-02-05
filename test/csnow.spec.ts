@@ -1,10 +1,7 @@
 import csnow from "../src";
 import { Snapshot } from "../src/csnow";
-const allAisInB = (a: unknown[], b: unknown[]) => {
-	a.forEach((aItem) => {
-		expect(b).toContainEqual(aItem);
-	});
-};
+import { allAisInB } from "./allAIsInB";
+
 const doAssertion = (a: unknown[], e: unknown[]) => {
 	allAisInB(a, e);
 	allAisInB(e, a);
