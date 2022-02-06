@@ -60,16 +60,26 @@ function* iterate<T>(items: Iterable<T>, fns: IteratorFunctionTuple<T, unknown>[
 	}
 }
 
-export class Lazy<T> implements ILazy {
-	protected readonly iterable: Iterable<T>;
+export abstract class Lazy<T> implements ILazy {
+	readonly #iterable: Iterable<T>;
 	protected readonly fns: IteratorFunctionTuple<T, unknown>[] = [];
 
+	protected abstract readonly filterIterable: (iterable: Iterable<T>) => Iterable<T>;
+
+	get items(): Iterable<T> {
+		return this.filterIterable(this.#iterable);
+	}
+
 	static from<T>(iterable: Iterable<T>) {
-		return new Lazy(iterable);
+		return new LazyArray(iterable);
+	}
+
+	static set<T>(iterable: Iterable<T>) {
+		return new LazySet(iterable);
 	}
 
 	protected constructor(iterator: Iterable<T>) {
-		this.iterable = iterator;
+		this.#iterable = iterator;
 	}
 
 	map<U>(fn: MapFn<T, U>): Lazy<U> {
@@ -83,11 +93,11 @@ export class Lazy<T> implements ILazy {
 	}
 
 	concat(iterable: Iterable<T>): Lazy<T> {
-		return new ConcatLazy(this, iterable);
+		return new ConcatLazy(this, iterable, this.filterIterable);
 	}
 
 	flatten(): T extends (infer U)[] ? Lazy<U> : Lazy<T> {
-		return new FlattenLazy(this) as unknown as T extends (infer U)[] ? Lazy<U> : Lazy<T>;
+		return new FlattenLazy(this, this.filterIterable) as unknown as T extends (infer U)[] ? Lazy<U> : Lazy<T>;
 	}
 
 	flatMap<U>(fn: FlatMapFn<T, U>): Lazy<U> {
@@ -96,8 +106,12 @@ export class Lazy<T> implements ILazy {
 			.#cast();
 	}
 
+	push(item: T): this {
+		return this.concat([item]) as unknown as this;
+	}
+
 	*[Symbol.iterator]() {
-		yield* iterate(this.iterable, this.fns);
+		yield* iterate(this.items, this.fns);
 	}
 
 	*each(fn: (t: T) => unknown | void | Promise<unknown> | Promise<void>) {
@@ -115,24 +129,29 @@ export class Lazy<T> implements ILazy {
 	}
 }
 
+export class LazyArray<T> extends Lazy<T> {
+	protected readonly filterIterable: (iterable: Iterable<T>) => Iterable<T> = (iterable) => iterable;
+}
+
 export class ConcatLazy<T> extends Lazy<T> {
 	readonly #parent: Lazy<T>;
-	constructor(parent: Lazy<T>, iterable: Iterable<T>) {
+	constructor(parent: Lazy<T>, iterable: Iterable<T>, protected readonly filterIterable: (iterable: Iterable<T>) => Iterable<T>) {
 		super(iterable);
 		this.#parent = parent;
+		this.filterIterable = filterIterable;
 	}
 
 	*[Symbol.iterator]() {
 		for (const item of this.#parent) {
 			yield* iterate([item], this.fns);
 		}
-		yield* iterate(this.iterable, this.fns);
+		yield* iterate(this.items, this.fns);
 	}
 }
 
 export class FlattenLazy<T> extends Lazy<T> {
 	readonly #parent: Lazy<T>;
-	constructor(parent: Lazy<T>) {
+	constructor(parent: Lazy<T>, protected readonly filterIterable: (iterable: Iterable<T>) => Iterable<T>) {
 		super([]);
 		this.#parent = parent;
 	}
@@ -146,4 +165,17 @@ export class FlattenLazy<T> extends Lazy<T> {
 			}
 		}
 	}
+}
+
+export class LazySet<T> extends Lazy<T> {
+	protected readonly filterIterable: (iterable: Iterable<T>) => Iterable<T> = (() => {
+		const set = new Set<T>();
+		return function* (iterable: Iterable<T>) {
+			for (const item of iterable) {
+				if (set.has(item)) continue;
+				set.add(item);
+				yield item;
+			}
+		};
+	})();
 }
