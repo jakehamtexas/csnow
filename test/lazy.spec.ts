@@ -33,4 +33,43 @@ describe("Lazy", () => {
 			.collect();
 		expect(actual).toStrictEqual(expected);
 	});
+
+	it("should allow correct usage of concat", () => {
+		const expected = ["BAR", "BAZ", "foobar"];
+		const actual = Lazy.from(["foo", "bar"])
+			.filter((str) => str === "bar")
+			.concat(["baz"])
+			.map((str) => {
+				console.log(str);
+				return str.toUpperCase();
+			})
+			.concat(["foobar"])
+			.collect();
+		expect(actual).toStrictEqual(expected);
+	});
+
+	it("should allow correct usage of flatten", () => {
+		const actual = Lazy.from([["foo", "bar"]])
+			.map((arr) => arr.concat("baz"))
+			.flatten()
+			.filter((item) => item !== "foo")
+			.collect();
+		expect(actual).toStrictEqual(["bar", "baz"]);
+	});
+
+	it("should allow correct usage of flatMap", () => {
+		const actual = Lazy.from([["foo", "bar"]])
+			.map((arr) => arr.concat("baz"))
+			.flatMap((item) => item.map((str) => str.toUpperCase()))
+			.filter((item) => item !== "FOO")
+			.collect();
+		expect(actual).toStrictEqual(["BAR", "BAZ"]);
+	});
+
+	it("should allow Lazy<T> or T[] to be used with `.from`", () => {
+		const expected = ["foo"];
+		const lazy = Lazy.from(expected);
+		const actual = Lazy.from(lazy).collect();
+		expect(actual).toStrictEqual(expected);
+	});
 });
