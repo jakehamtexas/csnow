@@ -52,7 +52,7 @@ describe("Lazy", () => {
 	describe.each([
 		{ type: describeArrayTest, fn: Lazy.array },
 		{ type: describeSetTest, fn: Lazy.set },
-	])("$type", ({ fn }) => {
+	])("$type", ({ type, fn }) => {
 		const makeLazy = fn as MakeArray;
 		it("should allow correct usage of concat", () => {
 			const expected = ["BAR", "BAZ", "foobar"];
@@ -63,13 +63,13 @@ describe("Lazy", () => {
 					.map((str) => str.toUpperCase())
 					.concat(["foobar"])
 			);
-			expect(Object.values(actual)).toStrictEqual(expected);
+			expect(actual).toStrictEqual(expected);
 		});
 
 		it("should allow correct usage of append", () => {
 			const expected = ["foo", "bar"];
 			const actual = getCollectedArray(makeLazy(["foo"]).append("bar"));
-			expect(Object.values(actual)).toStrictEqual(expected);
+			expect(actual).toStrictEqual(expected);
 		});
 
 		it("should allow correct usage of flatten", () => {
@@ -82,14 +82,21 @@ describe("Lazy", () => {
 			expect(actual).toStrictEqual(["bar", "baz"]);
 		});
 
-		it("should allow correct usage of flatMap", () => {
-			const actual = getCollectedArray(
-				makeLazy([["foo", "bar"]])
+		describe("flatMap", () => {
+			it.each([
+				{ nestedType: "LazyArray", fn: Lazy.array },
+				{ nestedType: "LazySet", fn: Lazy.set },
+				{ nestedType: "Array", fn: <T>(arr: T[]) => arr },
+				{ nestedType: "Set", fn: <T>(arr: T[]) => new Set(arr) },
+			])("should flatten $nestedType", ({ fn }) => {
+				const actual = makeLazy([["foo", "bar"]])
 					.map((arr) => arr.concat("baz"))
-					.flatMap((item) => item.map((str) => str.toUpperCase()))
+					.flatMap((item) => fn(item.map((str) => str.toUpperCase())))
 					.filter((item) => item !== "FOO")
-			);
-			expect(Object.values(actual)).toStrictEqual(["BAR", "BAZ"]);
+					.collect();
+				const expected = ["BAR", "BAZ"];
+				expect(actual).toStrictEqual(type === describeSetTest ? new Set(expected) : expected);
+			});
 		});
 	});
 
@@ -204,6 +211,16 @@ describe("Lazy", () => {
 					}),
 				];
 			});
+		});
+	});
+
+	describe("collect > should collect nested Lazy structures when the outermost one is collected", () => {
+		it("array inside array", () => {
+			const actual = Lazy.array(["foo"])
+				.map((foo) => Lazy.array([foo]))
+				.collect();
+			const expected = [["foo"]];
+			expect(actual).toStrictEqual(expected);
 		});
 	});
 });

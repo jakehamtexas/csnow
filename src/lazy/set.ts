@@ -1,21 +1,22 @@
-import { ISet, SeedIterable, MapFn, FilterFn, FlatMapFn, EachFn } from "./abstract";
-import { getAsValues } from "./iterable";
+import { AnyNode } from "../traverse";
+import { ILazySet, SeedIterable, MapFn, FilterFn, FlatMapFn, EachFn, Type, DeepCollected, FlattenedSet, ILazyArray } from "./abstract";
+import { LazyArray } from "./array";
+import { getEntries, rCollectDeep } from "./iterable";
+import iterator from "./iterator";
 
-export class LazySet<T> implements ISet<T> {
+export class LazySet<T> implements ILazySet<T> {
+	__type: Type.Set = Type.Set;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	constructor(private readonly seed: SeedIterable<T, any | never>) {}
-	collect(): Set<T> {
-		return new Set([...this]);
-	}
-	private get iterable(): Iterable<T> {
-		return getAsValues(this.seed);
+	collect(): DeepCollected<T, Type.Set> {
+		return new Set([...this].map((item) => rCollectDeep(item as unknown as AnyNode))) as DeepCollected<T, Type.Set>;
 	}
 	iterators: { values(): IterableIterator<T> } = (() => {
-		const set = new Set<T>();
-		const getIterable = () => this.iterable;
+		const getIterable = () => getEntries(this.seed);
 		return {
 			*values() {
-				for (const value of getIterable()) {
+				const set = new Set<T>();
+				for (const [, value] of getIterable()) {
 					if (set.has(value)) continue;
 					set.add(value);
 					yield value;
@@ -23,7 +24,7 @@ export class LazySet<T> implements ISet<T> {
 			},
 		};
 	})();
-	map<U>(f: MapFn<T, never, U>): ISet<U> {
+	map<U>(f: MapFn<T, never, U>): ILazySet<U> {
 		return new MapIterator(this, f);
 	}
 	*each(f: EachFn<T, never>): Generator {
@@ -31,29 +32,32 @@ export class LazySet<T> implements ISet<T> {
 			yield f(value, undefined as never);
 		}
 	}
-	filter(f: FilterFn<T, never>): ISet<T> {
+	filter(f: FilterFn<T, never>): ILazySet<T> {
 		return new FilterIterator(this, f);
 	}
-	flatten(): T extends (infer U)[] ? ISet<U> : ISet<T> {
-		return new FlattenIterator(this) as unknown as T extends (infer U)[] ? ISet<U> : ISet<T>;
+	flatten(): FlattenedSet<T> {
+		return new FlattenIterator(this) as unknown as FlattenedSet<T>;
 	}
-	flatMap<U>(f: FlatMapFn<T, never, U>): ISet<U> {
-		return this.map(f).flatten() as ISet<U>;
+	flatMap<U>(f: FlatMapFn<T, never, U>): ILazySet<U> {
+		return this.map(f).flatten() as ILazySet<U>;
 	}
-	concat(iterable: SeedIterable<T, never>): ISet<T> {
+	concat(iterable: SeedIterable<T, never>): ILazySet<T> {
 		return new ConcatIterator(this, iterable);
 	}
-	append(item: T): ISet<T> {
+	append(item: T): ILazySet<T> {
 		return this.concat([item]);
 	}
 	*[Symbol.iterator]() {
 		yield* this.iterators.values();
 	}
+	values(): ILazyArray<T> {
+		return new LazyArray(this.iterators.values());
+	}
 }
 
 class MapIterator<T, U> extends LazySet<U> {
-	constructor(parent: ISet<T>, private readonly fn: MapFn<T, never, U>) {
-		super(parent as unknown as ISet<U>);
+	constructor(parent: ILazySet<T>, private readonly fn: MapFn<T, never, U>) {
+		super(parent as unknown as ILazySet<U>);
 	}
 
 	*[Symbol.iterator]() {
@@ -64,7 +68,7 @@ class MapIterator<T, U> extends LazySet<U> {
 }
 
 class FilterIterator<T> extends LazySet<T> {
-	constructor(parent: ISet<T>, private readonly fn: FilterFn<T, never>) {
+	constructor(parent: ILazySet<T>, private readonly fn: FilterFn<T, never>) {
 		super(parent);
 	}
 
@@ -77,23 +81,17 @@ class FilterIterator<T> extends LazySet<T> {
 }
 
 class FlattenIterator<T> extends LazySet<T> {
-	constructor(parent: ISet<T>) {
+	constructor(parent: ILazySet<T>) {
 		super(parent);
 	}
 
-	*[Symbol.iterator]() {
-		for (const value of this.iterators.values()) {
-			if (Array.isArray(value)) {
-				yield* value;
-			} else {
-				yield value;
-			}
-		}
+	[Symbol.iterator](): Generator<T> {
+		return iterator.flatten<T>(this);
 	}
 }
 
 class ConcatIterator<T> extends LazySet<T> {
-	constructor(private readonly parent: ISet<T>, concatValue: SeedIterable<T, never>) {
+	constructor(private readonly parent: ILazySet<T>, concatValue: SeedIterable<T, never>) {
 		super(concatValue);
 	}
 

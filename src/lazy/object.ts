@@ -1,36 +1,25 @@
-import { EachFn, FilterFn, IArray, IObject, MapFn, ObjectKey, ObjectKeyedIterable } from "./abstract";
+import { AnyNode } from "../traverse";
+import { DeepCollected, EachFn, FilterFn, ILazyArray, ILazyObject, Type, MapFn, ObjectKey, ObjectKeyedIterable } from "./abstract";
 import { LazyArray } from "./array";
+import { getEntries, rCollectDeep } from "./iterable";
 
-export type KeyedCollection<T, TKey extends ObjectKey> = ObjectKeyedIterable<T, TKey> | T[] | IArray<T>;
+export type KeyedCollection<T, TKey extends ObjectKey> = ObjectKeyedIterable<T, TKey> | T[] | ILazyArray<T>;
 
-export const getAsEntries = <T, TKey extends ObjectKey>(seed: KeyedCollection<T, TKey>) => {
-	if (seed instanceof LazyArray) return seed.iterators.entries();
-	if (seed instanceof LazyObject) return seed.iterators.entries();
-	if (seed instanceof Array) return seed.entries();
-	if (seed instanceof Map) return seed.entries();
-
-	const record = seed as Record<string, T>;
-	return (function* () {
-		for (const index in record) {
-			const value = record[index];
-			yield [index, value] as [TKey, T];
-		}
-	})();
-};
-
-export class LazyObject<T, TKey extends ObjectKey> implements IObject<T, TKey> {
+export class LazyObject<T, TKey extends ObjectKey> implements ILazyObject<T, TKey> {
+	__type: Type.Object = Type.Object;
 	constructor(private readonly seed: KeyedCollection<T, TKey>) {}
-	collect(): Record<TKey, T> {
-		return Object.fromEntries([...this]) as Record<TKey, T>;
-	}
-	private get iterable(): Iterable<[TKey, T]> {
-		return getAsEntries(this.seed);
+	collect(): DeepCollected<T, Type.Object, TKey> {
+		return Object.fromEntries([...this].map(([key, value]) => [key, rCollectDeep(value as unknown as AnyNode)])) as DeepCollected<
+			T,
+			Type.Object,
+			TKey
+		>;
 	}
 	iterators: { values(): IterableIterator<T>; keys(): IterableIterator<TKey>; entries(): IterableIterator<[TKey, T]> } = (() => {
-		const keys = new Set<TKey>();
-		const getIterable = () => this.iterable;
+		const getIterable = () => getEntries(this.seed);
 		return {
 			*entries() {
+				const keys = new Set<TKey>();
 				for (const [key, value] of getIterable()) {
 					if (!keys.has(key)) {
 						yield [key, value];
@@ -50,7 +39,7 @@ export class LazyObject<T, TKey extends ObjectKey> implements IObject<T, TKey> {
 			},
 		};
 	})();
-	map<U>(f: MapFn<T, TKey, U>): IObject<U, TKey> {
+	map<U>(f: MapFn<T, TKey, U>): ILazyObject<U, TKey> {
 		return new MapIterator(this, f);
 	}
 	*each(f: EachFn<T, TKey>): Generator {
@@ -58,23 +47,32 @@ export class LazyObject<T, TKey extends ObjectKey> implements IObject<T, TKey> {
 			yield f(value, key);
 		}
 	}
-	filter(f: FilterFn<T, TKey>): IObject<T, TKey> {
+	filter(f: FilterFn<T, TKey>): ILazyObject<T, TKey> {
 		return new FilterIterator(this, f);
 	}
-	omitBy(f: FilterFn<T, TKey>): IObject<T, TKey> {
+	omitBy(f: FilterFn<T, TKey>): ILazyObject<T, TKey> {
 		return this.filter(f);
 	}
-	merge<U, UKey extends ObjectKey>(keyedCollection: KeyedCollection<U, UKey>): IObject<T | U, TKey | UKey> {
-		return new MergeIterator(this, keyedCollection) as IObject<T | U, TKey | UKey>;
+	merge<U, UKey extends ObjectKey>(keyedCollection: KeyedCollection<U, UKey>): ILazyObject<T | U, TKey | UKey> {
+		return new MergeIterator(this, keyedCollection) as ILazyObject<T | U, TKey | UKey>;
 	}
 	*[Symbol.iterator](): Iterator<[TKey, T]> {
 		yield* this.iterators.entries();
 	}
+	values(): ILazyArray<T> {
+		return new LazyArray(this.iterators.values());
+	}
+	keys(): ILazyArray<TKey> {
+		return new LazyArray(this.iterators.keys());
+	}
+	entries(): ILazyArray<[TKey, T]> {
+		return new LazyArray(this.iterators.entries());
+	}
 }
 
 class MapIterator<T, U, TKey extends ObjectKey> extends LazyObject<U, TKey> {
-	constructor(parent: IObject<T, TKey>, private readonly fn: MapFn<T, TKey, U>) {
-		super(parent as unknown as IObject<U, TKey>);
+	constructor(parent: ILazyObject<T, TKey>, private readonly fn: MapFn<T, TKey, U>) {
+		super(parent as unknown as ILazyObject<U, TKey>);
 	}
 
 	*[Symbol.iterator](): Iterator<[TKey, U]> {
@@ -85,7 +83,7 @@ class MapIterator<T, U, TKey extends ObjectKey> extends LazyObject<U, TKey> {
 }
 
 class FilterIterator<T, TKey extends ObjectKey> extends LazyObject<T, TKey> {
-	constructor(parent: IObject<T, TKey>, private readonly fn: FilterFn<T, TKey>) {
+	constructor(parent: ILazyObject<T, TKey>, private readonly fn: FilterFn<T, TKey>) {
 		super(parent);
 	}
 
@@ -98,8 +96,8 @@ class FilterIterator<T, TKey extends ObjectKey> extends LazyObject<T, TKey> {
 }
 
 class MergeIterator<T, TKey extends ObjectKey, U, UKey extends ObjectKey> extends LazyObject<T | U, TKey | UKey> {
-	constructor(private readonly parent: IObject<T, TKey>, keyedCollection: KeyedCollection<U, UKey>) {
-		super(keyedCollection as unknown as IObject<T | U, TKey | UKey>);
+	constructor(private readonly parent: ILazyObject<T, TKey>, keyedCollection: KeyedCollection<U, UKey>) {
+		super(keyedCollection as unknown as ILazyObject<T | U, TKey | UKey>);
 	}
 
 	*[Symbol.iterator](): Iterator<[TKey | UKey, T | U]> {

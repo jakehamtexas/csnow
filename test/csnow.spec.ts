@@ -37,10 +37,11 @@ describe("csnow", () => {
 				].map((obj) => [obj]);
 
 				// act
-				const actual = csnow(object);
+				const actual = [...csnow(object)];
 
 				// assert
-				doAssertion(actual, expected);
+				expect(actual).toStrictEqual(expected);
+				// doAssertion(actual, expected);
 			});
 
 			it("should calculate cartesian product with an object of two properties, one of csnow.OneOf, and one of a string", () => {
@@ -62,7 +63,7 @@ describe("csnow", () => {
 				].map((obj) => [obj]);
 
 				// act
-				const actual = csnow(object);
+				const actual = [...csnow(object)];
 
 				// assert
 				doAssertion(actual, expected);
@@ -87,7 +88,7 @@ describe("csnow", () => {
 				].map((obj) => [obj]);
 
 				// act
-				const actual = csnow(object);
+				const actual = [...csnow(object)];
 
 				// assert
 				doAssertion(actual, expected);
@@ -110,7 +111,7 @@ describe("csnow", () => {
 				].map((obj) => [obj]);
 
 				// act
-				const actual = csnow(object);
+				const actual = [...csnow(object)];
 
 				// assert
 				doAssertion(actual, expected);
@@ -139,72 +140,10 @@ describe("csnow", () => {
 				].map((obj) => [obj]);
 
 				// act
-				const actual = csnow(object);
+				const actual = [...csnow(object)];
 				// assert
 				doAssertion(actual, expected);
 			});
-		});
-	});
-	describe("array", () => {
-		it("should calculate cartesian product with 2 nested arrays of strings", () => {
-			// arrange
-			const array = [
-				["bar", "baz"],
-				["bar2", "baz2"],
-			];
-
-			const expected = [
-				["bar", "bar2"],
-				["bar", "baz2"],
-				["baz", "bar2"],
-				["baz", "baz2"],
-			];
-
-			// act
-			const actual = csnow(array);
-
-			// assert
-			doAssertion(actual, expected);
-		});
-
-		it("should calculate cartesian product with 1 nested arrays of strings and 1 string value", () => {
-			// arrange
-			const array = [["bar", "baz"], "baz2"];
-
-			const expected = [
-				["bar", "baz2"],
-				["baz", "baz2"],
-			];
-
-			// act
-			const actual = csnow(array);
-
-			// assert
-			doAssertion(actual, expected);
-		});
-
-		it("should calculate cartesian product with 2 nested arrays of arrays of strings", () => {
-			// arrange
-			const array = [
-				[["bar", "baz"], ["foo"]],
-				[["bar2", "baz2"], ["foo2"]],
-			];
-
-			const expected = [
-				[
-					["bar", "baz"],
-					["bar2", "baz2"],
-				],
-				[["bar", "baz"], ["foo2"]],
-				[["foo"], ["bar2", "baz2"]],
-				[["foo"], ["foo2"]],
-			];
-
-			// act
-			const actual = csnow(array);
-
-			// assert
-			doAssertion(actual, expected);
 		});
 	});
 
@@ -302,7 +241,7 @@ describe("csnow", () => {
 				].map((obj) => [obj]);
 
 				// act
-				const actual = csnow(object);
+				const actual = [...csnow(object)];
 				// assert
 				doAssertion(actual, expected);
 			});
@@ -313,48 +252,48 @@ describe("csnow", () => {
 		it("should calculate cartesian product with two objects, each with a shallow combinatoric expression", () => {
 			// arrange
 			const object1 = {
-				foo: csnow.OneOf(["bar", "baz"]),
-				foo2: "bar",
+				foo: csnow.OneOf(["o1", "o2"]),
+				foo2: "o3",
 			};
 
 			const object2 = {
-				foo: "bar",
-				foo2: csnow.OneOf(["bar", "baz"]),
+				foo: "o4",
+				foo2: csnow.OneOf(["o5", "o6"]),
 			};
 
 			const expected = [
 				[
 					{
-						foo: "bar",
-						foo2: "bar",
+						foo: "o1",
+						foo2: "o3",
 					},
-					{ foo: "bar", foo2: "bar" },
+					{ foo: "o4", foo2: "o5" },
 				],
 				[
 					{
-						foo: "baz",
-						foo2: "bar",
+						foo: "o2",
+						foo2: "o3",
 					},
-					{ foo: "bar", foo2: "bar" },
+					{ foo: "o4", foo2: "o5" },
 				],
 				[
 					{
-						foo: "baz",
-						foo2: "bar",
+						foo: "o1",
+						foo2: "o3",
 					},
-					{ foo: "bar", foo2: "baz" },
+					{ foo: "o4", foo2: "o6" },
 				],
 				[
 					{
-						foo: "bar",
-						foo2: "bar",
+						foo: "o2",
+						foo2: "o3",
 					},
-					{ foo: "bar", foo2: "baz" },
+					{ foo: "o4", foo2: "o6" },
 				],
 			];
 
 			// act
-			const actual = csnow(object1, object2);
+			const actual = [...csnow(object1, object2)];
 
 			// assert
 			doAssertion(actual, expected);
@@ -404,7 +343,7 @@ describe("csnow", () => {
 			];
 
 			// act
-			const actual = csnow(object1, object2);
+			const actual = [...csnow(object1, object2)];
 
 			// assert
 			doAssertion(actual, expected);

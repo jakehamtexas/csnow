@@ -1,11 +1,12 @@
 import _ from "lodash";
+import { ILazyArray, ILazyObject, Lazy } from "../lazy";
 import { AnyArray } from "../util";
 
 export enum CombinatoricStructureType {
 	OneOf = "oneOf",
 	KOf = "kOf",
 }
-type PropertyKindBase<TKind extends CombinatoricStructureType> = { type: TKind; array: AnyArray };
+type PropertyKindBase<TKind extends CombinatoricStructureType, T = unknown> = { type: TKind; array: Iterable<T> };
 export type CombinatoricStructure = {
 	[CombinatoricStructureType.OneOf]: PropertyKindBase<CombinatoricStructureType.OneOf>;
 	[CombinatoricStructureType.KOf]: PropertyKindBase<CombinatoricStructureType.KOf> & { k: number };
@@ -15,7 +16,7 @@ export type CombinatoricStructureUnion = CombinatoricStructure[CombinatoricStruc
 type MakeReturn<TCast, TStructure extends CombinatoricStructureType, TStrict extends 0 | 1> = TStrict extends 0
 	? CombinatoricStructure[TStructure] & TCast
 	: CombinatoricStructure[TStructure];
-export type Collection<T> = Record<string, T> | Record<number, T> | AnyArray<T>;
+export type Collection<T> = Record<string, T> | Record<number, T> | AnyArray<T> | ILazyObject<T, string> | ILazyArray<T>;
 
 type MakeOneOf<TStrict extends 0 | 1, U = never> = <T>(
 	collection: Collection<[U] extends [never] ? T : U>
@@ -78,4 +79,9 @@ export const structureHelpersBy = <TStructure extends CombinatoricStructureType>
 	return { make: make as never as Make<TStructure, 0>, strict: make, isSpecimen, rangeWith, iterateBy };
 };
 
-export const extractValues = <T>(collection: Collection<T>) => (Array.isArray(collection) ? collection : Object.values(collection));
+export const extractValues = <T>(collection: Collection<T>): Iterable<T> => {
+	if (Array.isArray(collection)) return collection;
+	if (Lazy.isArray(collection)) return collection;
+	if (Lazy.isObject(collection)) return collection.iterators.values();
+	return Object.values(collection);
+};
