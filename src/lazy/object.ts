@@ -8,7 +8,9 @@ export type KeyedCollection<T, TKey extends ObjectKey> = ObjectKeyedIterable<T, 
 
 export class LazyObject<T, TKey extends ObjectKey> implements ILazyObject<T, TKey> {
 	__type: Type.Object = Type.Object;
+
 	constructor(private readonly seed: KeyedCollection<T, TKey>) {}
+
 	collect(): DeepCollected<T, Type.Object, TKey> {
 		return _.fromPairs([...this].map(([key, value]) => [key, rCollectDeep(value as unknown as AnyNode)])) as DeepCollected<
 			T,
@@ -16,6 +18,7 @@ export class LazyObject<T, TKey extends ObjectKey> implements ILazyObject<T, TKe
 			TKey
 		>;
 	}
+
 	iterators: { values(): IterableIterator<T>; keys(): IterableIterator<TKey>; entries(): IterableIterator<[TKey, T]> } = (() => {
 		const getIterable = () => getEntries(this.seed);
 		return {
@@ -40,32 +43,41 @@ export class LazyObject<T, TKey extends ObjectKey> implements ILazyObject<T, TKe
 			},
 		};
 	})();
+
 	map<U>(f: MapFn<T, TKey, U>): ILazyObject<U, TKey> {
 		return new MapIterator(this, f);
 	}
+
 	*each(f: EachFn<T, TKey>): Generator {
 		for (const [key, value] of this.iterators.entries()) {
 			yield f(value, key);
 		}
 	}
+
 	filter(f: FilterFn<T, TKey>): ILazyObject<T, TKey> {
 		return new FilterIterator(this, f);
 	}
+
 	omitBy(f: FilterFn<T, TKey>): ILazyObject<T, TKey> {
 		return this.filter(f);
 	}
+
 	merge<U, UKey extends ObjectKey>(keyedCollection: KeyedCollection<U, UKey>): ILazyObject<T | U, TKey | UKey> {
 		return new MergeIterator(this, keyedCollection) as ILazyObject<T | U, TKey | UKey>;
 	}
+
 	*[Symbol.iterator](): Iterator<[TKey, T]> {
 		yield* this.iterators.entries();
 	}
+
 	values(): ILazyArray<T> {
 		return new LazyArray(this.iterators.values());
 	}
+
 	keys(): ILazyArray<TKey> {
 		return new LazyArray(this.iterators.keys());
 	}
+
 	entries(): ILazyArray<[TKey, T]> {
 		return new LazyArray(this.iterators.entries());
 	}

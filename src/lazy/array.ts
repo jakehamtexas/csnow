@@ -22,10 +22,13 @@ import { LazyValue } from "./value";
 
 export class LazyArray<T> implements ILazyArray<T> {
 	__type: Type.Array = Type.Array;
+
 	constructor(private readonly seed: SeedIterable<T, number>) {}
+
 	collect(): DeepCollected<T, Type.Array> {
 		return [...this].map((item) => rCollectDeep(item as unknown as AnyNode)) as DeepCollected<T, Type.Array>;
 	}
+
 	iterators: { values(): IterableIterator<T>; indices(): IterableIterator<number>; entries(): IterableIterator<[number, T]> } = (() => {
 		const getIterable = () => getEntries(this.seed);
 		return {
@@ -44,39 +47,50 @@ export class LazyArray<T> implements ILazyArray<T> {
 			},
 		};
 	})();
+
 	map<U>(f: MapFn<T, number, U>): ILazyArray<U> {
 		return new MapIterator(this, f);
 	}
+
 	*each(f: EachFn<T, number>): Generator {
 		for (const [index, value] of this.iterators.entries()) {
 			yield f(value, index);
 		}
 	}
+
 	filter(f: FilterFn<T, number>): ILazyArray<T> {
 		return new FilterIterator(this, f);
 	}
+
 	flatten(): FlattenedArray<T> {
 		return new FlattenIterator(this) as unknown as FlattenedArray<T>;
 	}
+
 	flatMap<U>(f: FlatMapFn<T, number, U>): ILazyArray<U> {
 		return this.map(f).flatten() as ILazyArray<U>;
 	}
+
 	concat(iterable: SeedIterable<T, number>): ILazyArray<T> {
 		return new ConcatIterator(this, iterable);
 	}
+
 	append(item: T): ILazyArray<T> {
 		return this.concat([item]);
 	}
+
 	static cast<T>(item: T | ILazyArray<T> | T[]): ILazyArray<T> {
 		if (hasType.lazyArray<T>(item)) return item;
 		return new LazyArray(Array.isArray(item) ? item : [item as T]);
 	}
+
 	*[Symbol.iterator](): Iterator<T> {
 		yield* this.iterators.values();
 	}
+
 	values(): ILazyArray<T> {
 		return this;
 	}
+
 	reduce<UAccumulator>(f: ReduceFn<T, UAccumulator>, startingValue: UAccumulator): ReduceFnRT<UAccumulator, 1> {
 		const iterator = (() => {
 			if (hasType.lazyArray(startingValue) || hasType.array(startingValue)) return new ArrayReduceIterator(this, f, startingValue);

@@ -6,11 +6,14 @@ import iterator from "./iterator";
 
 export class LazySet<T> implements ILazySet<T> {
 	__type: Type.Set = Type.Set;
+
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	constructor(private readonly seed: SeedIterable<T, any | never>) {}
+
 	collect(): DeepCollected<T, Type.Set> {
 		return new Set([...this].map((item) => rCollectDeep(item as unknown as AnyNode))) as DeepCollected<T, Type.Set>;
 	}
+
 	iterators: { values(): IterableIterator<T> } = (() => {
 		const getIterable = () => getEntries(this.seed);
 		return {
@@ -24,32 +27,41 @@ export class LazySet<T> implements ILazySet<T> {
 			},
 		};
 	})();
+
 	map<U>(f: MapFn<T, never, U>): ILazySet<U> {
 		return new MapIterator(this, f);
 	}
+
 	*each(f: EachFn<T, never>): Generator {
 		for (const value of this.iterators.values()) {
 			yield f(value, undefined as never);
 		}
 	}
+
 	filter(f: FilterFn<T, never>): ILazySet<T> {
 		return new FilterIterator(this, f);
 	}
+
 	flatten(): FlattenedSet<T> {
 		return new FlattenIterator(this) as unknown as FlattenedSet<T>;
 	}
+
 	flatMap<U>(f: FlatMapFn<T, never, U>): ILazySet<U> {
 		return this.map(f).flatten() as ILazySet<U>;
 	}
+
 	concat(iterable: SeedIterable<T, never>): ILazySet<T> {
 		return new ConcatIterator(this, iterable);
 	}
+
 	append(item: T): ILazySet<T> {
 		return this.concat([item]);
 	}
+
 	*[Symbol.iterator]() {
 		yield* this.iterators.values();
 	}
+
 	values(): ILazyArray<T> {
 		return new LazyArray(this.iterators.values());
 	}
