@@ -37,7 +37,7 @@ describe("csnow", () => {
 				].map((obj) => [obj]);
 
 				// act
-				const actual = [...csnow(object)];
+				const actual = [...csnow(object).result];
 
 				// assert
 				expect(actual).toStrictEqual(expected);
@@ -63,7 +63,7 @@ describe("csnow", () => {
 				].map((obj) => [obj]);
 
 				// act
-				const actual = [...csnow(object)];
+				const actual = [...csnow(object).result];
 
 				// assert
 				doAssertion(actual, expected);
@@ -88,7 +88,7 @@ describe("csnow", () => {
 				].map((obj) => [obj]);
 
 				// act
-				const actual = [...csnow(object)];
+				const actual = [...csnow(object).result];
 
 				// assert
 				doAssertion(actual, expected);
@@ -111,7 +111,7 @@ describe("csnow", () => {
 				].map((obj) => [obj]);
 
 				// act
-				const actual = [...csnow(object)];
+				const actual = [...csnow(object).result];
 
 				// assert
 				doAssertion(actual, expected);
@@ -140,7 +140,7 @@ describe("csnow", () => {
 				].map((obj) => [obj]);
 
 				// act
-				const actual = [...csnow(object)];
+				const actual = [...csnow(object).result];
 				// assert
 				doAssertion(actual, expected);
 			});
@@ -241,7 +241,7 @@ describe("csnow", () => {
 				].map((obj) => [obj]);
 
 				// act
-				const actual = [...csnow(object)];
+				const actual = [...csnow(object).result];
 				// assert
 				doAssertion(actual, expected);
 			});
@@ -293,7 +293,7 @@ describe("csnow", () => {
 			];
 
 			// act
-			const actual = [...csnow(object1, object2)];
+			const actual = [...csnow(object1, object2).result];
 
 			// assert
 			doAssertion(actual, expected);
@@ -343,7 +343,7 @@ describe("csnow", () => {
 			];
 
 			// act
-			const actual = [...csnow(object1, object2)];
+			const actual = [...csnow(object1, object2).result];
 
 			// assert
 			doAssertion(actual, expected);

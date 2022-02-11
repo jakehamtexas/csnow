@@ -109,12 +109,14 @@ export type FlattenedArray<T, TLazy extends 1 | 0 = 1> = T extends (infer U)[]
 	: SelectArray<T, TLazy>;
 
 export interface ILazyValue<T> extends IterableWithType<T, Type.Value> {
-	collect(): T;
-	collectDeep(): T;
+	collect(): DeepCollected<T, Type.Value>;
 }
+export type Irreducible = string | number | symbol | null | undefined | boolean;
 
 export type ReduceFn<T, UAccumulator> = (accumulator: UAccumulator, current: T, index: number) => UAccumulator;
-export type ReduceFnRT<UAccumulator, TLazy extends 1 | 0 = 1> = UAccumulator extends Record<infer UKey, infer U>
+export type ReduceFnRT<UAccumulator, TLazy extends 1 | 0 = 1> = UAccumulator extends Irreducible
+	? ILazyValue<UAccumulator>
+	: UAccumulator extends Record<infer UKey, infer U>
 	? ILazyObject<U, UKey>
 	: UAccumulator extends ILazyObject<infer U, infer UKey>
 	? ILazyObject<U, UKey>
@@ -126,7 +128,7 @@ export type ReduceFnRT<UAccumulator, TLazy extends 1 | 0 = 1> = UAccumulator ext
 	? SelectArray<U, TLazy>
 	: UAccumulator extends ILazyArray<infer U>
 	? SelectArray<U, TLazy>
-	: ILazyValue<UAccumulator>;
+	: never;
 export interface ILazyArray<T> extends HasValuesIterator<T>, IterableWithType<T, Type.Array>, HasValues<T> {
 	collect(): DeepCollected<T, Type.Array>;
 

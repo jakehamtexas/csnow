@@ -24,11 +24,7 @@ export class LazyArray<T> implements ILazyArray<T> {
 	__type: Type.Array = Type.Array;
 	constructor(private readonly seed: SeedIterable<T, number>) {}
 	collect(): DeepCollected<T, Type.Array> {
-		const iterated = [...this];
-		const collected = iterated.map((item) => {
-			return rCollectDeep(item as unknown as AnyNode);
-		}) as DeepCollected<T, Type.Array>;
-		return collected;
+		return [...this].map((item) => rCollectDeep(item as unknown as AnyNode)) as DeepCollected<T, Type.Array>;
 	}
 	iterators: { values(): IterableIterator<T>; indices(): IterableIterator<number>; entries(): IterableIterator<[number, T]> } = (() => {
 		const getIterable = () => getEntries(this.seed);
@@ -81,13 +77,13 @@ export class LazyArray<T> implements ILazyArray<T> {
 	values(): ILazyArray<T> {
 		return this;
 	}
-	reduce<UAccumulator>(f: ReduceFn<T, UAccumulator>, startingValue: UAccumulator): ReduceFnRT<UAccumulator> {
+	reduce<UAccumulator>(f: ReduceFn<T, UAccumulator>, startingValue: UAccumulator): ReduceFnRT<UAccumulator, 1> {
 		const iterator = (() => {
-			if (hasType.lazyArray(startingValue) || Array.isArray(startingValue)) return new ArrayReduceIterator(this, f, startingValue);
-			if (hasType.lazySet(startingValue) || startingValue instanceof Set) return new SetReduceIterator(this, f, startingValue);
-			if (hasType.lazyObject(startingValue) || (typeof startingValue === "object" && startingValue !== null))
-				return new ObjectReduceIterator(this, f, startingValue);
-			return new ValueReduceIterator(this, f, startingValue);
+			if (hasType.lazyArray(startingValue) || hasType.array(startingValue)) return new ArrayReduceIterator(this, f, startingValue);
+			if (hasType.lazySet(startingValue) || hasType.set(startingValue)) return new SetReduceIterator(this, f, startingValue);
+			if (hasType.lazyObject(startingValue) || hasType.object(startingValue)) return new ObjectReduceIterator(this, f, startingValue);
+			if (hasType.lazyValue(startingValue) || hasType.value(startingValue)) return new ValueReduceIterator(this, f, startingValue);
+			throw new Error("Unreachable!");
 		})();
 		return iterator as never as ReduceFnRT<UAccumulator>;
 	}
@@ -157,7 +153,7 @@ class ArrayReduceIterator<T, UAccumulator> extends LazyArray<T> {
 	}
 
 	*[Symbol.iterator]() {
-		yield* new LazyArray(reduce(this.parent, this.fn, this.startingValue) as never) as never as LazyArray<T>;
+		yield* new LazyArray(reduce(this.parent, this.fn.bind(this), this.startingValue) as never) as never as LazyArray<T>;
 	}
 }
 
@@ -189,7 +185,7 @@ class ObjectReduceIterator<T, UAccumulator, TKey extends ObjectKey = never> exte
 	}
 }
 
-class ValueReduceIterator<T, UAccumulator> extends LazyValue<T> {
+class ValueReduceIterator<T, UAccumulator> extends LazyArray<T> {
 	constructor(
 		private readonly parent: ILazyArray<T>,
 		private readonly fn: ReduceFn<T, UAccumulator>,

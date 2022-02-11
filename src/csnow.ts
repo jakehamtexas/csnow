@@ -1,12 +1,11 @@
-import _ from "lodash";
+import _, { size } from "lodash";
 import { OneOf } from "./combinatoric";
 import { CombinatoricStructureUnion } from "./combinatoric/combinatoric";
 import { expanded, shortestCombinatoricStructurePath, Subject } from "./graph";
 import { Lazy } from "./lazy";
+import { Irreducible } from "./lazy/abstract";
 
-export function* calculate(firstArg: Subject, ...otherArgs: Subject[]) {
-	const subjects = [firstArg, ...otherArgs];
-
+function* _calculate(subjects: Subject[]) {
 	const possibilitiesPerArgSubject = Lazy.array(subjects)
 		.map((subject) => {
 			const hasCombinatoricStructure = Boolean(shortestCombinatoricStructurePath(subject));
@@ -35,7 +34,13 @@ export function* calculate(firstArg: Subject, ...otherArgs: Subject[]) {
 		);
 }
 
-type Irreducible = string | number | symbol | null | undefined | boolean;
+export const calculate = (subject: Subject, ...subjects: Subject[]) => {
+	subjects = [subject, ...subjects];
+	return {
+		count: size(subjects),
+		result: _calculate(subjects),
+	};
+};
 type NormalizedFormSubjectNode<TSubject, K extends keyof TSubject> = TSubject[K] extends infer V
 	? V extends Irreducible
 		? V
@@ -62,7 +67,7 @@ export const makeSnapshot = <TSubject extends Subject, TOutput>(
 	subjects: [TSubject, ...TSubject[]],
 	fn: (...subjects: NormalizedFormSubject<TSubject>[]) => TOutput
 ): Snapshot<TSubject, TOutput> =>
-	[...calculate(...subjects)].map((input) => ({
+	[...calculate(...subjects).result].map((input) => ({
 		input: input as unknown as NormalizedFormSubject<TSubject>[],
 		output: fn(...(input as unknown as NormalizedFormSubject<TSubject>[])),
 	}));

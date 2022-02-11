@@ -85,3 +85,11 @@ const { rTraverse: rExpand } = traverseWith({
 });
 
 export const expanded = <TSubject extends Subject>(subject: TSubject) => rExpand(subject) as ILazyArray<TSubject>;
+
+const getSizeOfCombinatoricStructure = (structure: CombinatoricStructureUnion) =>
+	new Combination(structure.array, KOf.isSpecimen(structure) ? structure.k : 1).length as number;
+export const size = (...subjects: Subject[]) =>
+	subjects
+		.map((subject) => [combinatoricStructurePaths(subject), _.propertyOf(subject)] as const)
+		.map(([paths, getAtPath]) => [...paths].map(getAtPath).map(getSizeOfCombinatoricStructure).reduce(_.multiply, 1))
+		.reduce(_.multiply, 1);
