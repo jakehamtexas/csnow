@@ -3,7 +3,7 @@ import { Combination } from "ts-combinatorics";
 import { PATH_DELIMITER } from "./constant";
 import { isCombinatoricStructure, KOf } from "./combinatoric";
 import { CombinatoricStructureUnion } from "./combinatoric/combinatoric";
-import { Lazy, ILazyArray, ILazyObject } from "./lazy";
+import { Lazy, ILazyArray } from "./lazy";
 import { AnyNode, TerminalNode, NonTerminalNode, traverseWith, RTraverseFn } from "./traverse";
 import { ObjectKey } from "./lazy/abstract";
 import hasType from "./lazy/hasType";
@@ -44,7 +44,7 @@ export const combinatoricStructurePaths = (object: unknown) => {
 	return rTraverse(object, [], new Set());
 };
 
-export const shortestCombinatoricStructurePath = (v: unknown) => {
+export const shortestCombinatoricStructurePath = (v: AnyNode) => {
 	const paths = combinatoricStructurePaths(v);
 	return _.chain([...paths])
 		.sortBy((key) => key.split(PATH_DELIMITER).length)
@@ -74,10 +74,9 @@ const traverseAndExpandWith =
 		}
 		return (makeLazy as MakeLazyI)(node as Iterable<AnyNode>).map(traverse);
 	};
-const { rTraverse } = traverseWith({
+const { rTraverse: rExpand } = traverseWith({
 	rTraverseIterableBy: traverseAndExpandWith(Lazy.array),
 	rTraverseMapBy: traverseAndExpandWith(Lazy.object),
 });
 
-export const expanded = <TSubject extends Subject>(subject: TSubject) =>
-	rTraverse(subject) as ILazyObject<TSubject, keyof TSubject> | ILazyArray<TSubject>;
+export const expanded = <TSubject extends Subject>(subject: TSubject) => rExpand(subject) as ILazyArray<TSubject>;

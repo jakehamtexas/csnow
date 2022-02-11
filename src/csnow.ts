@@ -4,12 +4,6 @@ import { OneOf } from "./combinatoric";
 import { CombinatoricStructureUnion } from "./combinatoric/combinatoric";
 import { expanded, shortestCombinatoricStructurePath, Subject } from "./graph";
 import { Lazy } from "./lazy";
-import { ILazyArray } from "./lazy/abstract";
-import { AnyNode } from "./traverse";
-
-// type Cartesian = {};
-// type Snap<TInput extends Cartesian, TOutput> = (input: TInput, fn: (input: TInput) => TOutput) => SnapTest<TInput, TOutput>;
-type Irreducible = string | number | symbol | null | undefined | boolean;
 
 export function* calculate(firstArg: Subject, ...otherArgs: Subject[]) {
 	if (Array.isArray(firstArg)) return fastCartesian(firstArg.map((v) => (Array.isArray(v) ? v : [v])) as unknown[][]);
@@ -20,7 +14,7 @@ export function* calculate(firstArg: Subject, ...otherArgs: Subject[]) {
 		.map((subject) => {
 			const hasCombinatoricStructure = Boolean(shortestCombinatoricStructurePath(subject));
 			if (!hasCombinatoricStructure) return Lazy.array([subject]);
-			return expanded(subject) as ILazyArray<AnyNode>;
+			return expanded(subject);
 			// const combinations = _.mapValues(collected, (sub) => OneOf(sub as Collection<unknown>));
 			// return traverseMap(combinations as never);
 		})
@@ -28,15 +22,21 @@ export function* calculate(firstArg: Subject, ...otherArgs: Subject[]) {
 		.collect()
 		.entries();
 
-	yield* (expanded(Object.fromEntries(possibilitiesPerArgSubject)).collect() as object[]).map(Object.entries).map((entries) =>
-		_.chain(entries)
-			.map(([indexStr, v]) => [parseInt(indexStr, 10), v])
-			.sortBy(([pos]) => pos)
-			.map(_.last)
-			.value()
-	);
+	const arrayKeyed = Object.fromEntries(possibilitiesPerArgSubject);
+	yield* expanded(arrayKeyed)
+		.collect()
+		.map(Object.entries)
+		.map(
+			(entries) =>
+				_.chain(entries)
+					.map(([indexStr, v]) => [parseInt(indexStr, 10), v])
+					.sortBy(([pos]) => pos)
+					.map(_.last)
+					.value() as object[]
+		);
 }
 
+type Irreducible = string | number | symbol | null | undefined | boolean;
 type NormalizedFormSubjectNode<TSubject, K extends keyof TSubject> = TSubject[K] extends infer V
 	? V extends Irreducible
 		? V

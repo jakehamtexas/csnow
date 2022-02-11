@@ -1,6 +1,5 @@
 import _ from "lodash";
 import { ILazyArray, ILazyObject, Lazy } from "../lazy";
-import { AnyArray } from "../util";
 
 export enum CombinatoricStructureType {
 	OneOf = "oneOf",
@@ -16,6 +15,9 @@ export type CombinatoricStructureUnion = CombinatoricStructure[CombinatoricStruc
 type MakeReturn<TCast, TStructure extends CombinatoricStructureType, TStrict extends 0 | 1> = TStrict extends 0
 	? CombinatoricStructure[TStructure] & TCast
 	: CombinatoricStructure[TStructure];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyArray<T = any> = readonly T[] | T[];
+
 export type Collection<T> = Record<string, T> | Record<number, T> | AnyArray<T> | ILazyObject<T, string> | ILazyArray<T>;
 
 type MakeOneOf<TStrict extends 0 | 1, U = never> = <T>(

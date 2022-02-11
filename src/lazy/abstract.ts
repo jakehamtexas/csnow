@@ -145,24 +145,3 @@ export interface ILazyArray<T> extends HasValuesIterator<T>, IterableWithType<T,
 	append(item: T): ILazyArray<T>;
 	reduce<UAccumulator>(f: ReduceFn<T, UAccumulator>, startingValue: UAccumulator): ReduceFnRT<UAccumulator>;
 }
-// type ZippedArray<T> =
-// export interface ICollectedArray<T> extends HasValuesIterator<T>, IterableWithType<T, Type.Array> {
-// 	collect(): ICollectedArray<T>;
-// 	collectDeep(): DeepCollected<T, Type.Array>;
-
-// 	iterators: {
-// 		values(): IterableIterator<T>;
-// 		indices(): IterableIterator<number>;
-// 		entries(): IterableIterator<[number, T]>;
-// 	};
-
-// 	map<U>(f: MapFn<T, number, U>): ICollectedArray<U>;
-// 	each(f: EachFn<T, number>): void;
-// 	filter(f: FilterFn<T, number>): ICollectedArray<T>;
-// 	flatten(): FlattenedArray<T, 0>;
-// 	flatMap<U>(f: FlatMapFn<T, number, U, 0>): ICollectedArray<U>;
-// 	concat(iterable: SeedIterable<T, number>): ICollectedArray<T>;
-// 	append(item: T): ICollectedArray<T>;
-// 	reduce<UAccumulator>(f: ReduceFn<T, UAccumulator>, startingValue: UAccumulator): ReduceFnRT<UAccumulator, 0>;
-// 	values(): T[];
-// }
