@@ -17,7 +17,7 @@ const subject = {
 	baz: csnow.KOf(2, ["foo", "bar", "baz"]),
 };
 
-const snapshots = csnow(subject);
+const snapshots = [...csnow(subject)];
 
 /*
  * [
@@ -30,3 +30,5 @@ const snapshots = csnow(subject);
  * ]
  */
 ```
+
+Calling `csnow` on a cartesian product `Subject` will return an `Iterator<object[]>`. You can iterate through it with a `for..of` loop, or use something like `[...iterator]` to expand it to an array. Due to the large size of the resultant array, it may be preferable to iterate through them lazily with `for..of` in some cases.
