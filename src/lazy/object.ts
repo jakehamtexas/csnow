@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { AnyNode } from "../traverse";
 import { DeepCollected, EachFn, FilterFn, ILazyArray, ILazyObject, Type, MapFn, ObjectKey, ObjectKeyedIterable } from "./abstract";
 import { LazyArray } from "./array";
@@ -9,7 +10,7 @@ export class LazyObject<T, TKey extends ObjectKey> implements ILazyObject<T, TKe
 	__type: Type.Object = Type.Object;
 	constructor(private readonly seed: KeyedCollection<T, TKey>) {}
 	collect(): DeepCollected<T, Type.Object, TKey> {
-		return Object.fromEntries([...this].map(([key, value]) => [key, rCollectDeep(value as unknown as AnyNode)])) as DeepCollected<
+		return _.fromPairs([...this].map(([key, value]) => [key, rCollectDeep(value as unknown as AnyNode)])) as DeepCollected<
 			T,
 			Type.Object,
 			TKey

@@ -17,10 +17,14 @@ export function* calculate(firstArg: Subject, ...otherArgs: Subject[]) {
 		.collect()
 		.entries();
 
-	const arrayKeyed = Object.fromEntries(possibilitiesPerArgSubject);
-	yield* expanded(arrayKeyed)
+	const toArray = () => [...possibilitiesPerArgSubject];
+	yield* _.chain(possibilitiesPerArgSubject)
+		.thru(toArray)
+		.thru(_.fromPairs)
+		.thru(expanded)
+		.value()
 		.collect()
-		.map(Object.entries)
+		.map(_.toPairs)
 		.map(
 			(entries) =>
 				_.chain(entries)
