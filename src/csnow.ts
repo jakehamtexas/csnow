@@ -1,4 +1,3 @@
-import fastCartesian from "fast-cartesian";
 import _ from "lodash";
 import { OneOf } from "./combinatoric";
 import { CombinatoricStructureUnion } from "./combinatoric/combinatoric";
@@ -6,8 +5,6 @@ import { expanded, shortestCombinatoricStructurePath, Subject } from "./graph";
 import { Lazy } from "./lazy";
 
 export function* calculate(firstArg: Subject, ...otherArgs: Subject[]) {
-	if (Array.isArray(firstArg)) return fastCartesian(firstArg.map((v) => (Array.isArray(v) ? v : [v])) as unknown[][]);
-
 	const subjects = [firstArg, ...otherArgs];
 
 	const possibilitiesPerArgSubject = Lazy.array(subjects)
@@ -15,8 +12,6 @@ export function* calculate(firstArg: Subject, ...otherArgs: Subject[]) {
 			const hasCombinatoricStructure = Boolean(shortestCombinatoricStructurePath(subject));
 			if (!hasCombinatoricStructure) return Lazy.array([subject]);
 			return expanded(subject);
-			// const combinations = _.mapValues(collected, (sub) => OneOf(sub as Collection<unknown>));
-			// return traverseMap(combinations as never);
 		})
 		.map((expanded) => OneOf(expanded))
 		.collect()
