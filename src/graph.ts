@@ -38,7 +38,12 @@ export const combinatoricStructurePaths = (object: unknown) => {
 				combinatoricToTraverseTuple(combinatoric).concat(nonCombinatoricToTraverseTuple(nonCombinatoric))
 			)
 			.value();
-		return new Set(traverseTuples.map((args) => rTraverse(...args)).flatMap((set) => [...set]));
+		return new Set(
+			_.chain(traverseTuples)
+				.map((args) => rTraverse(...args))
+				.flatMap((set) => [...set])
+				.value()
+		);
 	}
 
 	return rTraverse(object, [], new Set());
