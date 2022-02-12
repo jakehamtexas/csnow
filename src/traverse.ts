@@ -10,10 +10,9 @@ export interface MapNode {
 	[s: ObjectKey]: AnyNode;
 }
 
-export const isTerminalNode = (maybe: unknown): maybe is TerminalNode => !hasType.object(maybe);
-export const isMapNode = (maybe: unknown): maybe is MapNode => hasType.object(maybe) && !hasType.array(maybe);
-export const isIterableNode = (maybe: unknown): maybe is IterableNode =>
-	hasType.array(maybe) || hasType.lazySet(maybe) || hasType.lazyArray(maybe);
+export const isTerminalNode = (maybe: unknown): maybe is TerminalNode => !hasType.anyObject(maybe);
+export const isMapNode = (maybe: unknown): maybe is MapNode => hasType.anyObject(maybe) && !hasType.anyArray(maybe);
+export const isIterableNode = (maybe: unknown): maybe is IterableNode => [hasType.anyArray, hasType.anySet].some((fn) => fn(maybe));
 
 export type RTraverseFn<TIterableHookRT, TMapHookRT> = (node: AnyNode) => TIterableHookRT | TMapHookRT | TerminalNode;
 export type TraverseStrategy<TIterableHookRT extends AnyNode, TMapHookRT extends AnyNode> = {

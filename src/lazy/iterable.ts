@@ -1,16 +1,15 @@
 import _ from "lodash";
-import { traverseWith, AnyNode } from "../traverse";
+import { traverseWith, AnyNode, TerminalNode } from "../traverse";
 import { ObjectKey, SeedIterable } from "./abstract";
 import hasType from "./hasType";
 
+const isMap = <T>(maybe: unknown): maybe is Map<never, T> => maybe instanceof Map;
 const isIterable = <T>(maybe: unknown): maybe is Iterable<T> => typeof (maybe as Iterable<T>)[Symbol.iterator] === "function";
+
 const getValues = <T>(seed: SeedIterable<T, never>): Iterable<T> => {
-	if (hasType.set<T>(seed)) return seed;
-	if (hasType.lazySet<T>(seed)) return seed;
-	if (hasType.lazyArray<T>(seed)) return seed;
-	if (hasType.array(seed)) return seed;
-	if (hasType.lazyObject(seed)) return seed.iterators.values();
-	if (seed instanceof Map) return seed.values();
+	if (hasType.anyArray<T>(seed) || hasType.anySet<T>(seed)) return seed;
+	if (hasType.lazyObject<T>(seed)) return seed.iterators.values();
+	if (isMap<T>(seed)) return seed.values();
 	if (isIterable<T>(seed)) return seed;
 
 	const record = seed as Record<ObjectKey, T>;
@@ -22,18 +21,16 @@ const getValues = <T>(seed: SeedIterable<T, never>): Iterable<T> => {
 	})();
 };
 export const getEntries = <T, TKey extends ObjectKey>(seed: SeedIterable<T, TKey>): Iterable<[TKey, T]> => {
-	if (hasType.lazyObject(seed)) return seed.iterators.entries();
-	if (seed instanceof Map) return seed.entries();
+	if (hasType.lazyObject<T>(seed)) return seed.iterators.entries();
+	if (isMap<T>(seed)) return seed.entries();
 
-	const isSet = [hasType.set, hasType.lazySet].some((fn) => fn(seed));
-	const isArray = [hasType.array, hasType.lazyArray].some((fn) => fn(seed));
-	if (isSet)
+	if (hasType.anySet(seed))
 		return (function* () {
 			for (const value of getValues(seed)) {
 				yield [undefined as unknown as TKey, value as T];
 			}
 		})();
-	if (isArray || isIterable<T>(seed))
+	if (hasType.anyArray(seed) || isIterable<T>(seed))
 		return (function* () {
 			let index = 0;
 			for (const value of getValues(seed)) {
@@ -58,8 +55,8 @@ export const getKeys = function* <TKey extends ObjectKey>(seed: SeedIterable<nev
 };
 
 export const { rTraverse: rCollectDeep } = traverseWith({
-	terminalHook: (node) => (hasType.lazyValue(node) ? node.collect() : node),
+	terminalHook: (node) => (hasType.lazyValue<TerminalNode>(node) ? node.collect() : node),
 	rTraverseIterableBy: (traverse) => (node) =>
 		[...(hasType.lazyArray(node) || hasType.lazySet(node) ? node.collect() : node)].map((n) => traverse(n as AnyNode)),
-	rTraverseMapBy: (traverse) => (node) => _.mapValues(hasType.lazyObject(node) ? node.collect() : node, traverse),
+	rTraverseMapBy: (traverse) => (node) => _.mapValues(hasType.lazyObject<AnyNode>(node) ? node.collect() : node, traverse),
 });

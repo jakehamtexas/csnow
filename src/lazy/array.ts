@@ -80,7 +80,7 @@ export class LazyArray<T> implements ILazyArray<T> {
 
 	static cast<T>(item: T | ILazyArray<T> | T[]): ILazyArray<T> {
 		if (hasType.lazyArray<T>(item)) return item;
-		return new LazyArray(Array.isArray(item) ? item : [item as T]);
+		return new LazyArray(hasType.array(item) ? item : [item as T]);
 	}
 
 	*[Symbol.iterator](): Iterator<T> {
@@ -92,14 +92,18 @@ export class LazyArray<T> implements ILazyArray<T> {
 	}
 
 	reduce<UAccumulator>(f: ReduceFn<T, UAccumulator>, startingValue: UAccumulator): ReduceFnRT<UAccumulator, 1> {
-		const iterator = (() => {
-			if (hasType.lazyArray(startingValue) || hasType.array(startingValue)) return new ArrayReduceIterator(this, f, startingValue);
-			if (hasType.lazySet(startingValue) || hasType.set(startingValue)) return new SetReduceIterator(this, f, startingValue);
-			if (hasType.lazyObject(startingValue) || hasType.object(startingValue)) return new ObjectReduceIterator(this, f, startingValue);
-			if (hasType.lazyValue(startingValue) || hasType.value(startingValue)) return new ValueReduceIterator(this, f, startingValue);
-			throw new Error("Unreachable!");
-		})();
-		return iterator as never as ReduceFnRT<UAccumulator>;
+		const [, Ctor] = (
+			[
+				[hasType.anyArray, ArrayReduceIterator],
+				[hasType.anySet, SetReduceIterator],
+				[hasType.anyObject, ObjectReduceIterator],
+				[hasType.anyValue, ValueReduceIterator],
+			] as const
+		).find(([predicate]) => predicate(startingValue)) as unknown as [
+			never,
+			new (t: typeof this, f: ReduceFn<T, UAccumulator>, u: UAccumulator) => ReduceFnRT<UAccumulator>
+		];
+		return new Ctor(this, f, startingValue);
 	}
 }
 

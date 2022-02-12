@@ -29,7 +29,7 @@ export const combinatoricStructurePaths = (object: unknown) => {
 	function rTraverse(node: unknown, pathParts: string[], paths: Paths): Paths {
 		const combinatoricToTraverseTuple = combinatoricToTraverseTupleBy(paths);
 		const nonCombinatoricToTraverseTuple = nonCombinatoricToTraverseTupleBy(paths);
-		if (hasType.value(node) || hasType.lazyValue(node)) return paths;
+		if (hasType.anyValue(node)) return paths;
 		const traverseTuples = _.chain(node as Record<ObjectKey, never>)
 			.map((value, key) => [pathParts.concat((key as ObjectKey).toString()), value] as const)
 			.map(([nextPathParts, value]) => [nextPathParts.join(PATH_DELIMITER), value, nextPathParts] as const)
