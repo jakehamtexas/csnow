@@ -31,7 +31,6 @@
   "author": "Jake Hamilton (jakehamtexas@gmail.com)",
   "license": "Unlicense",
   "dependencies": {
-    "fast-cartesian": "^6.1.0",
     "lodash": "^4.17.21",
     "ts-combinatorics": "^1.0.0"
   },

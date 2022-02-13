@@ -1,5 +1,6 @@
+import _ from "lodash";
 import { OneOf, KOf } from "../src/combinatoric";
-import { combinatoricStructurePaths, toExpanded } from "../src/graph";
+import { combinatoricStructurePaths, expanded, size, Subject } from "../src/graph";
 
 describe("combinatoricStructurePaths", () => {
 	it("should get paths where OneOf statements are used", () => {
@@ -51,16 +52,14 @@ describe("combinatoricStructurePaths", () => {
 	});
 });
 
-describe("toExpanded", () => {
+describe("expanded", () => {
 	const combinationArray = (arr: unknown[]) =>
-		arr.map((v) => [
-			{
-				foo: v,
-			},
-		]);
+		arr.map((v) => ({
+			foo: v,
+		}));
 	it("should not expand an object without combinatoric structures", () => {
 		// arrange
-		const object = {
+		const expected = {
 			foo: {
 				bar: {
 					baz: 1,
@@ -68,20 +67,8 @@ describe("toExpanded", () => {
 			},
 		};
 
-		const expected = [
-			[
-				{
-					foo: {
-						bar: {
-							baz: 1,
-						},
-					},
-				},
-			],
-		];
-
 		// act
-		const actual = toExpanded([object]);
+		const actual = expanded(expected).collect();
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -101,7 +88,7 @@ describe("toExpanded", () => {
 		]);
 
 		// act
-		const actual = toExpanded([object]);
+		const actual = expanded(object).collect();
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -120,7 +107,7 @@ describe("toExpanded", () => {
 		]);
 
 		// act
-		const actual = toExpanded([object]);
+		const actual = expanded(object).collect();
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -135,7 +122,7 @@ describe("toExpanded", () => {
 		const expected = combinationArray(["bar", "baz", "foo2"]);
 
 		// act
-		const actual = toExpanded([object]);
+		const actual = expanded(object).collect();
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -150,7 +137,7 @@ describe("toExpanded", () => {
 		const expected = combinationArray([{ foo: { bar: "bar" } }, { foo: "baz" }, "foo2"]);
 
 		// act
-		const actual = toExpanded([object]);
+		const actual = expanded(object).collect();
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -173,7 +160,7 @@ describe("toExpanded", () => {
 		]);
 
 		// act
-		const actual = toExpanded([object]);
+		const actual = expanded(object).collect();
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -196,7 +183,7 @@ describe("toExpanded", () => {
 		]);
 
 		// act
-		const actual = toExpanded([object]);
+		const actual = expanded(object).collect();
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -217,7 +204,7 @@ describe("toExpanded", () => {
 		]);
 
 		// act
-		const actual = toExpanded([object]);
+		const actual = expanded(object).collect();
 
 		// assert
 		expect(actual).toStrictEqual(expected);
@@ -232,9 +219,31 @@ describe("toExpanded", () => {
 		const expected = combinationArray([["foo3", "bar"], ["foo3", "baz"], ["bar", "baz"], "foo2", "bar2"]);
 
 		// act
-		const actual = toExpanded([object]);
+		const actual = expanded(object).collect();
 
 		// assert
 		expect(actual).toStrictEqual(expected);
+	});
+});
+
+describe("size", () => {
+	const basicObject = {
+		foo: ["foo", "bar"],
+		bar: ["bar", "baz"],
+		baz: ["bar", "baz"],
+		baz2: ["bar", "baz"],
+	};
+	const makeKOf = (arr: unknown[]) => KOf(2, arr.concat(arr[1]));
+	const makeOneOf = (arr: unknown[]) => OneOf(arr);
+	const [kOfObj, oneOfObj] = [makeKOf, makeOneOf].map((fn) => _.mapValues(basicObject, fn));
+	it.each([
+		{ type: "oneOf", object: kOfObj, expected: 81 },
+		{ type: "kOf", object: oneOfObj, expected: 16 },
+	])("nested $type: should get the number of elements in an expansion", ({ expected, object }) => {
+		// act
+		const actual = size(object as Subject);
+
+		// assert
+		expect(actual).toBe(expected);
 	});
 });

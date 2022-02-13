@@ -1,9 +1,12 @@
 import _ from "lodash";
 import { Combination } from "ts-combinatorics";
 import { PATH_DELIMITER } from "./constant";
-import { AnyArray } from "./util";
-import { isCombinatoricStructure, KOf, OneOf } from "./combinatoric";
+import { isCombinatoricStructure, KOf } from "./combinatoric";
 import { CombinatoricStructureUnion } from "./combinatoric/combinatoric";
+import { Lazy, ILazyArray } from "./lazy";
+import { AnyNode, TerminalNode, NonTerminalNode, traverseWith, RTraverseFn } from "./traverse";
+import { ObjectKey } from "./lazy/abstract";
+import hasType from "./lazy/hasType";
 
 type CombinatoricTuple = readonly [string, never, string[]];
 type Paths = Set<string>;
@@ -15,16 +18,20 @@ const combinatoricToTraverseTupleBy =
 const nonCombinatoricToTraverseTupleBy =
 	(paths: Paths) =>
 	(tuples: CombinatoricTuple[]): TraverseTuple[] =>
-		tuples.map(([, value, nextPartPaths]) => [value, nextPartPaths, paths]);
-const isTraversable = (v: unknown): v is object => typeof v === "object" && v !== null;
+		tuples.map(([, value, nextPartPaths]) => [value, nextPartPaths, paths] as const);
+type MakeLazy<TType extends "and" | "or"> = TType extends "and"
+	? typeof Lazy.array & typeof Lazy.object
+	: typeof Lazy.array | typeof Lazy.object;
+type MakeLazyU = MakeLazy<"or">;
+type MakeLazyI = MakeLazy<"and">;
 
-export const combinatoricStructurePaths = (object: object) => {
+export const combinatoricStructurePaths = (object: unknown) => {
 	function rTraverse(node: unknown, pathParts: string[], paths: Paths): Paths {
 		const combinatoricToTraverseTuple = combinatoricToTraverseTupleBy(paths);
 		const nonCombinatoricToTraverseTuple = nonCombinatoricToTraverseTupleBy(paths);
-		if (!isTraversable(node)) return paths;
-		const traverseTuples = _.chain(node)
-			.map((value, key) => [pathParts.concat(key), value] as const)
+		if (hasType.anyValue(node)) return paths;
+		const traverseTuples = _.chain(node as Record<ObjectKey, never>)
+			.map((value, key) => [pathParts.concat((key as ObjectKey).toString()), value] as const)
 			.map(([nextPathParts, value]) => [nextPathParts.join(PATH_DELIMITER), value, nextPathParts] as const)
 			.partition(([, value]) => isCombinatoricStructure(value))
 			.thru(([combinatoric, nonCombinatoric]) =>
@@ -42,91 +49,47 @@ export const combinatoricStructurePaths = (object: object) => {
 	return rTraverse(object, [], new Set());
 };
 
-const shortestCombinatoricStructurePath = (v: object) => {
+export const shortestCombinatoricStructurePath = (v: AnyNode) => {
 	const paths = combinatoricStructurePaths(v);
-	return _.chain(paths)
-		.thru(Array.from)
-		.sortBy((key) => (key as string).split(PATH_DELIMITER).length)
+	return _.chain([...paths])
+		.sortBy((key) => key.split(PATH_DELIMITER).length)
 		.first()
 		.value() as string;
 };
 
-const expanded = (obj: object) => {
-	function rExpand(node: unknown): unknown {
-		const path = isTraversable(node) && shortestCombinatoricStructurePath(node);
+export type Subject = Record<string, AnyNode>;
+
+const possibilities = (combinatoricStructure: CombinatoricStructureUnion): ILazyArray<TerminalNode | NonTerminalNode> => {
+	const possibilitiesIterable = KOf.isSpecimen(combinatoricStructure)
+		? new Combination(combinatoricStructure.array, combinatoricStructure.k)
+		: combinatoricStructure.array;
+	return Lazy.array(possibilitiesIterable as Iterable<TerminalNode | NonTerminalNode>);
+};
+
+const traverseAndExpandWith =
+	<TMakeLazy extends MakeLazyU>(makeLazy: TMakeLazy) =>
+	<TIterableHookRT, TMapHookRT>(traverse: RTraverseFn<TIterableHookRT, TMapHookRT>) =>
+	(node: AnyNode) => {
+		const path = shortestCombinatoricStructurePath(node);
 		if (path) {
 			const combinatoric = _.get(node, path) as CombinatoricStructureUnion;
-			return _.chain(combinatoric.array)
+			return possibilities(combinatoric)
 				.map((inner) => _.chain(node).cloneDeep().set(path, inner).value())
-				.flatMap(rExpand)
-				.value();
+				.flatMap(traverse);
 		}
-		if (!isTraversable(node)) return node;
-		if (Array.isArray(node)) return node.map(rExpand);
-		return _.mapValues(node, rExpand);
-	}
-	return rExpand(obj) as object[];
-};
-
-type TraversedGraphNode<T, K extends keyof T> = T[K] extends CombinatoricStructureUnion
-	? T[K]
-	: T[K] extends object
-	? TraversedGraph<T[K]>
-	: T[K];
-type TraversedGraph<T> = {
-	[K in keyof T]: TraversedGraphNode<T, K>;
-};
-
-function* getCombinatoricArray(combinatoricStructure: CombinatoricStructureUnion) {
-	if (KOf.isSpecimen(combinatoricStructure)) {
-		yield* new Combination(combinatoricStructure.array, combinatoricStructure.k).bitwiseIterator();
-		return;
-	}
-	yield* combinatoricStructure.array.values();
-}
-type TraverseResult<T> = T extends AnyArray ? TraverseResult<unknown>[] : T extends object ? TraversedGraph<T> : T;
-export const toExpanded = <T extends object>(subjects: T[]) => {
-	const rTraverseObject = <U extends object>(node: U, flatten = false): TraverseResult<U> | object[] => {
-		if (!isCombinatoricStructure(node)) return _.mapValues(node, (value) => rTraverse(value)) as TraverseResult<U>;
-
-		const combinatoricArray = [...getCombinatoricArray(node)];
-		const array = _.flatMap(combinatoricArray, (v: unknown) => {
-			const hasCombinatoricChildren = isTraversable(v) && !_.isEmpty(combinatoricStructurePaths(v));
-			if (hasCombinatoricChildren) {
-				const shortestPath = shortestCombinatoricStructurePath(v);
-				const combinatoric = _.get(v, shortestPath);
-				const array = [...getCombinatoricArray(combinatoric)];
-				return array.map((inner) => _.chain(v).cloneDeep().set(shortestPath, inner).value()).map(rTraverse);
-			}
-			if (isTraversable(v) && isCombinatoricStructure(v)) {
-				return rTraverseObject(v, true);
-			}
-			return [v];
-		});
-		return flatten ? (array as never) : ({ ...node, array } as TraverseResult<U>);
+		return (makeLazy as MakeLazyI)(node as Iterable<AnyNode>).map(traverse);
 	};
-	const rTraverseArray = <U extends AnyArray>(node: U): TraverseResult<U> => node.map(rTraverse) as TraverseResult<U>;
-	const rTraverse = <U>(node: U): TraverseResult<U> => {
-		if (!isTraversable(node)) return node as TraverseResult<U>;
-		if (Array.isArray(node)) return rTraverseArray(node);
-		return rTraverseObject(node) as TraverseResult<U>;
-	};
+const { rTraverse: rExpand } = traverseWith({
+	rTraverseIterableBy: traverseAndExpandWith(Lazy.array),
+	rTraverseMapBy: traverseAndExpandWith(Lazy.object),
+});
 
-	const expandSubject = (subject: T) => {
-		const traversed = rTraverse(subject) as TraversedGraph<T>;
-		return _.castArray(expanded(traversed));
-	};
-	return _.chain(subjects)
-		.map(expandSubject)
-		.mapValues((subjects) => OneOf(subjects))
-		.thru((subjectObj) => expandSubject(subjectObj as T))
-		.map(Object.entries)
-		.map((entries) =>
-			_.chain(entries)
-				.map(([indexStr, v]) => [parseInt(indexStr, 10), v])
-				.sortBy(([pos]) => pos)
-				.map(_.last)
-				.value()
-		)
-		.value() as object[][];
-};
+export const expanded = <TSubject extends Subject>(subject: TSubject) => rExpand(subject) as ILazyArray<TSubject>;
+
+const getSizeOfCombinatoricStructure = (structure: CombinatoricStructureUnion) =>
+	new Combination(structure.array, KOf.isSpecimen(structure) ? structure.k : 1).length as number;
+export const size = (...subjects: Subject[]) =>
+	subjects
+		.map((subject) => [combinatoricStructurePaths(subject), _.propertyOf(subject)] as const)
+		.map(([paths, getAtPath]) => [...paths].map(getAtPath).map(getSizeOfCombinatoricStructure).reduce(_.multiply, 1))
+		.reduce(_.multiply, 1);

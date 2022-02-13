@@ -1,11 +1,13 @@
 import _ from "lodash";
-import { AnyArray } from "../util";
+import { ILazyArray, ILazyObject } from "../lazy";
+import hasType from "../lazy/hasType";
+import { makeCase, matchBy } from "../match";
 
 export enum CombinatoricStructureType {
 	OneOf = "oneOf",
 	KOf = "kOf",
 }
-type PropertyKindBase<TKind extends CombinatoricStructureType> = { type: TKind; array: AnyArray };
+type PropertyKindBase<TKind extends CombinatoricStructureType, T = unknown> = { type: TKind; array: Iterable<T> };
 export type CombinatoricStructure = {
 	[CombinatoricStructureType.OneOf]: PropertyKindBase<CombinatoricStructureType.OneOf>;
 	[CombinatoricStructureType.KOf]: PropertyKindBase<CombinatoricStructureType.KOf> & { k: number };
@@ -15,7 +17,10 @@ export type CombinatoricStructureUnion = CombinatoricStructure[CombinatoricStruc
 type MakeReturn<TCast, TStructure extends CombinatoricStructureType, TStrict extends 0 | 1> = TStrict extends 0
 	? CombinatoricStructure[TStructure] & TCast
 	: CombinatoricStructure[TStructure];
-export type Collection<T> = Record<string, T> | Record<number, T> | AnyArray<T>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyArray<T = any> = readonly T[] | T[];
+
+export type Collection<T> = Record<string, T> | Record<number, T> | AnyArray<T> | ILazyObject<T, string> | ILazyArray<T>;
 
 type MakeOneOf<TStrict extends 0 | 1, U = never> = <T>(
 	collection: Collection<[U] extends [never] ? T : U>
@@ -78,4 +83,9 @@ export const structureHelpersBy = <TStructure extends CombinatoricStructureType>
 	return { make: make as never as Make<TStructure, 0>, strict: make, isSpecimen, rangeWith, iterateBy };
 };
 
-export const extractValues = <T>(collection: Collection<T>) => (Array.isArray(collection) ? collection : Object.values(collection));
+export const extractValues = <T>(collection: Collection<T>): Iterable<T> => {
+	return matchBy(collection)({
+		cases: [makeCase(hasType.anyArray, _.identity), makeCase(hasType.lazyObject, (col) => col.iterators.values() as Iterable<T>)],
+		wildcard: (v) => Object.values(v),
+	}) as Iterable<T>;
+};
