@@ -1,6 +1,7 @@
 import _ from "lodash";
 import { ObjectKey } from "./lazy/abstract";
 import hasType from "./lazy/hasType";
+import { makeCase, matchBy } from "./match";
 
 export type TerminalNode = string | number | boolean | null | undefined;
 export type IterableNode = Iterable<unknown>;
@@ -28,10 +29,13 @@ export const traverseWith = <TIterableHookRT extends AnyNode, TMapHookRT extends
 	const rTraverseIterable = rTraverseIterableBy(rTraverse);
 	const rTraverseMap = rTraverseMapBy(rTraverse);
 	function rTraverse(node: AnyNode): TIterableHookRT | TMapHookRT | TerminalNode {
-		if (isTerminalNode(node)) return terminalHook(node);
-		if (isIterableNode(node)) return rTraverseIterable(node);
-		if (isMapNode(node)) return rTraverseMap(node);
-		throw new Error("Unreachable!");
+		return matchBy(node)({
+			cases: [
+				makeCase(isTerminalNode, terminalHook),
+				makeCase(isIterableNode, rTraverseIterable) as never,
+				makeCase(isMapNode, rTraverseMap) as never,
+			],
+		});
 	}
 	return { rTraverse, rTraverseIterable, rTraverseMap };
 };

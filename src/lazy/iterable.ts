@@ -1,4 +1,5 @@
 import _ from "lodash";
+import { makeCase, matchBy } from "../match";
 import { traverseWith, AnyNode, TerminalNode } from "../traverse";
 import { ObjectKey, SeedIterable } from "./abstract";
 import hasType from "./hasType";
@@ -6,47 +7,52 @@ import hasType from "./hasType";
 const isMap = <T>(maybe: unknown): maybe is Map<never, T> => maybe instanceof Map;
 const isIterable = <T>(maybe: unknown): maybe is Iterable<T> => typeof (maybe as Iterable<T>)[Symbol.iterator] === "function";
 
-const getValues = <T>(seed: SeedIterable<T, never>): Iterable<T> => {
-	if (hasType.anyArray<T>(seed) || hasType.anySet<T>(seed)) return seed;
-	if (hasType.lazyObject<T>(seed)) return seed.iterators.values();
-	if (isMap<T>(seed)) return seed.values();
-	if (isIterable<T>(seed)) return seed;
-
-	const record = seed as Record<ObjectKey, T>;
-	return (function* () {
-		for (const key in record) {
-			const value = record[key];
-			yield value as T;
-		}
-	})();
-};
-export const getEntries = <T, TKey extends ObjectKey>(seed: SeedIterable<T, TKey>): Iterable<[TKey, T]> => {
-	if (hasType.lazyObject<T>(seed)) return seed.iterators.entries();
-	if (isMap<T>(seed)) return seed.entries();
-
-	if (hasType.anySet(seed))
-		return (function* () {
-			for (const value of getValues(seed)) {
-				yield [undefined as unknown as TKey, value as T];
+const getValues = <T>(seed: SeedIterable<T, never>): Iterable<T> =>
+	matchBy(seed)({
+		cases: [
+			makeCase(hasType.anyArray, _.identity),
+			makeCase(hasType.anySet, _.identity),
+			makeCase(isMap, (seed) => seed.values()),
+			makeCase(isIterable, _.identity),
+		],
+		wildcard: function* (v) {
+			const record = v as Record<string, T>;
+			for (const key in record) {
+				const value = record[key];
+				yield value as T;
 			}
-		})();
-	if (hasType.anyArray(seed) || isIterable<T>(seed))
-		return (function* () {
-			let index = 0;
-			for (const value of getValues(seed)) {
-				yield [index as unknown as TKey, value as T];
-				index += 1;
-			}
-		})();
+		},
+	}) as Iterable<T>;
 
-	const record = seed as Record<TKey, T>;
-	return (function* () {
-		for (const key in record) {
-			const value = record[key];
-			yield [key, value] as [TKey, T];
-		}
-	})();
-};
+export const getEntries = <T, TKey extends ObjectKey>(seed: SeedIterable<T, TKey>): Iterable<[TKey, T]> =>
+	matchBy(seed)({
+		cases: [
+			makeCase(hasType.lazyObject, (v) => v.iterators.entries() as unknown as Iterable<[TKey, T]>),
+			makeCase(isMap, (v) => v.entries() as unknown as Iterable<[TKey, T]>),
+			makeCase(hasType.anySet, function* (v) {
+				for (const value of getValues(v)) {
+					yield [undefined as unknown, value] as [TKey, T];
+				}
+			}),
+			makeCase(
+				(v) => hasType.anyArray(v) || isIterable<T>(v),
+				function* (v) {
+					let index = 0;
+					for (const value of getValues(v as SeedIterable<T, TKey>)) {
+						yield [index as unknown, value] as [TKey, T];
+						index += 1;
+					}
+				}
+			),
+		],
+		wildcard: function* (v) {
+			const record = v as Record<TKey, T>;
+			for (const key in record) {
+				const value = record[key];
+				yield [key, value] as [TKey, T];
+			}
+		},
+	});
 
 export const getKeys = function* <TKey extends ObjectKey>(seed: SeedIterable<never, TKey>): Iterable<TKey> {
 	for (const [key] of getEntries(seed)) {

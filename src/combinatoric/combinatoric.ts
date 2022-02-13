@@ -1,6 +1,7 @@
 import _ from "lodash";
 import { ILazyArray, ILazyObject } from "../lazy";
 import hasType from "../lazy/hasType";
+import { makeCase, matchBy } from "../match";
 
 export enum CombinatoricStructureType {
 	OneOf = "oneOf",
@@ -83,7 +84,8 @@ export const structureHelpersBy = <TStructure extends CombinatoricStructureType>
 };
 
 export const extractValues = <T>(collection: Collection<T>): Iterable<T> => {
-	if (hasType.anyArray<T>(collection)) return collection;
-	if (hasType.lazyObject<T>(collection)) return collection.iterators.values();
-	return Object.values(collection);
+	return matchBy(collection)({
+		cases: [makeCase(hasType.anyArray, _.identity), makeCase(hasType.lazyObject, (col) => col.iterators.values() as Iterable<T>)],
+		wildcard: (v) => Object.values(v),
+	}) as Iterable<T>;
 };
