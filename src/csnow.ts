@@ -1,7 +1,7 @@
-import _, { size } from "lodash";
+import _ from "lodash";
 import { OneOf } from "./combinatoric";
 import { CombinatoricStructureUnion } from "./combinatoric/combinatoric";
-import { expanded, shortestCombinatoricStructurePath, Subject } from "./graph";
+import { expanded, shortestCombinatoricStructurePath, size, Subject } from "./graph";
 import { Lazy } from "./lazy";
 import { Irreducible } from "./lazy/abstract";
 
@@ -37,7 +37,7 @@ function* _calculate(subjects: Subject[]) {
 export const calculate = (subject: Subject, ...subjects: Subject[]) => {
 	subjects = [subject, ...subjects];
 	return {
-		count: size(subjects),
+		count: size(...subjects),
 		result: _calculate(subjects),
 	};
 };
